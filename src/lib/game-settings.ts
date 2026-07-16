@@ -82,25 +82,26 @@ function mergeSettings(settings: Partial<GameSettings>): GameSettings {
   return {
     ...DEFAULT_GAME_SETTINGS,
     ...settings,
-    clans: nonEmpty(settings.clans, DEFAULT_GAME_SETTINGS.clans),
-    natures: nonEmpty(settings.natures, DEFAULT_GAME_SETTINGS.natures),
-    demeanors: nonEmpty(settings.demeanors, DEFAULT_GAME_SETTINGS.demeanors),
-    havens: nonEmpty(settings.havens, DEFAULT_GAME_SETTINGS.havens),
-    chronicles: nonEmpty(settings.chronicles, DEFAULT_GAME_SETTINGS.chronicles),
-    concepts: nonEmpty(settings.concepts, DEFAULT_GAME_SETTINGS.concepts),
+    clans: cleanList(settings.clans, DEFAULT_GAME_SETTINGS.clans),
+    natures: cleanList(settings.natures, DEFAULT_GAME_SETTINGS.natures),
+    demeanors: cleanList(settings.demeanors, DEFAULT_GAME_SETTINGS.demeanors),
+    havens: cleanList(settings.havens, DEFAULT_GAME_SETTINGS.havens),
+    chronicles: cleanList(settings.chronicles, DEFAULT_GAME_SETTINGS.chronicles),
+    concepts: cleanList(settings.concepts, DEFAULT_GAME_SETTINGS.concepts),
     skillMax: clampNumber(settings.skillMax, 1, 10, DEFAULT_GAME_SETTINGS.skillMax),
     skills: {
-      fisicas: nonEmpty(settings.skills?.fisicas, DEFAULT_GAME_SETTINGS.skills.fisicas),
-      sociais: nonEmpty(settings.skills?.sociais, DEFAULT_GAME_SETTINGS.skills.sociais),
-      mentais: nonEmpty(settings.skills?.mentais, DEFAULT_GAME_SETTINGS.skills.mentais),
+      fisicas: cleanList(settings.skills?.fisicas, DEFAULT_GAME_SETTINGS.skills.fisicas),
+      sociais: cleanList(settings.skills?.sociais, DEFAULT_GAME_SETTINGS.skills.sociais),
+      mentais: cleanList(settings.skills?.mentais, DEFAULT_GAME_SETTINGS.skills.mentais),
     },
-    states: nonEmpty(settings.states, DEFAULT_GAME_SETTINGS.states),
+    states: cleanList(settings.states, DEFAULT_GAME_SETTINGS.states),
   };
 }
 
-function nonEmpty(value: string[] | undefined, fallback: string[]) {
+function cleanList(value: string[] | undefined, fallback: string[]) {
+  if (value === undefined) return fallback;
   const clean = (value ?? []).map((item) => item.trim()).filter(Boolean);
-  return clean.length ? clean : fallback;
+  return Array.from(new Set(clean));
 }
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number) {

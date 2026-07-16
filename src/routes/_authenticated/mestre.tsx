@@ -11,7 +11,7 @@ import {
 } from "@/lib/characters.functions";
 import { CharacterSheetView } from "@/components/CharacterSheetView";
 import { sheetSchema } from "@/lib/character-schema";
-import { saveGameSettings, useGameSettings, type GameSettings } from "@/lib/game-settings";
+import { DEFAULT_GAME_SETTINGS, saveGameSettings, useGameSettings, type GameSettings } from "@/lib/game-settings";
 import { clearOldDiceRequests, closeDiceRequest, createDiceRequest, rollDice, useDiceTable } from "@/lib/dice-table";
 
 type Row = {
@@ -642,21 +642,31 @@ function SettingsPanel({ settings }: { settings: GameSettings }) {
   const update = (patch: Partial<GameSettings>) => saveGameSettings({ ...settings, ...patch });
   const updateSkills = (key: keyof GameSettings["skills"], value: string[]) =>
     saveGameSettings({ ...settings, skills: { ...settings.skills, [key]: value } });
+  const restoreAll = () => {
+    if (!confirm("Restaurar todos os cadastros padrões da crônica?")) return;
+    saveGameSettings(DEFAULT_GAME_SETTINGS);
+  };
 
   return (
     <section className="gothic-panel mb-10 border border-border/60 bg-card/40 p-6 rounded-sm">
-      <h2 className="font-display uppercase tracking-widest text-sm text-blood mb-4">Configurações da Crônica</h2>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Cadastros auxiliares</p>
+          <h2 className="font-display uppercase tracking-widest text-sm text-blood">Configurações da Crônica</h2>
+        </div>
+        <Button variant="outline" size="sm" onClick={restoreAll}>Restaurar todos os padrões</Button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ListConfig label="Clãs" value={settings.clans} onChange={(v) => update({ clans: v })} />
-        <ListConfig label="Naturezas" value={settings.natures} onChange={(v) => update({ natures: v })} />
-        <ListConfig label="Comportamentos" value={settings.demeanors} onChange={(v) => update({ demeanors: v })} />
-        <ListConfig label="Refúgios" value={settings.havens} onChange={(v) => update({ havens: v })} />
-        <ListConfig label="Crônicas" value={settings.chronicles} onChange={(v) => update({ chronicles: v })} />
-        <ListConfig label="Conceitos" value={settings.concepts} onChange={(v) => update({ concepts: v })} />
-        <ListConfig label="Habilidades físicas" value={settings.skills.fisicas} onChange={(v) => updateSkills("fisicas", v)} />
-        <ListConfig label="Habilidades sociais" value={settings.skills.sociais} onChange={(v) => updateSkills("sociais", v)} />
-        <ListConfig label="Habilidades mentais" value={settings.skills.mentais} onChange={(v) => updateSkills("mentais", v)} />
-        <ListConfig label="Estados" value={settings.states} onChange={(v) => update({ states: v })} />
+        <ListConfig label="Clãs" value={settings.clans} defaultValue={DEFAULT_GAME_SETTINGS.clans} onChange={(v) => update({ clans: v })} />
+        <ListConfig label="Naturezas" value={settings.natures} defaultValue={DEFAULT_GAME_SETTINGS.natures} onChange={(v) => update({ natures: v })} />
+        <ListConfig label="Comportamentos" value={settings.demeanors} defaultValue={DEFAULT_GAME_SETTINGS.demeanors} onChange={(v) => update({ demeanors: v })} />
+        <ListConfig label="Refúgios" value={settings.havens} defaultValue={DEFAULT_GAME_SETTINGS.havens} onChange={(v) => update({ havens: v })} />
+        <ListConfig label="Crônicas" value={settings.chronicles} defaultValue={DEFAULT_GAME_SETTINGS.chronicles} onChange={(v) => update({ chronicles: v })} />
+        <ListConfig label="Conceitos" value={settings.concepts} defaultValue={DEFAULT_GAME_SETTINGS.concepts} onChange={(v) => update({ concepts: v })} />
+        <ListConfig label="Habilidades físicas" value={settings.skills.fisicas} defaultValue={DEFAULT_GAME_SETTINGS.skills.fisicas} onChange={(v) => updateSkills("fisicas", v)} />
+        <ListConfig label="Habilidades sociais" value={settings.skills.sociais} defaultValue={DEFAULT_GAME_SETTINGS.skills.sociais} onChange={(v) => updateSkills("sociais", v)} />
+        <ListConfig label="Habilidades mentais" value={settings.skills.mentais} defaultValue={DEFAULT_GAME_SETTINGS.skills.mentais} onChange={(v) => updateSkills("mentais", v)} />
+        <ListConfig label="Estados" value={settings.states} defaultValue={DEFAULT_GAME_SETTINGS.states} onChange={(v) => update({ states: v })} />
         <label className="block">
           <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Nível máximo das habilidades</span>
           <Input
@@ -672,10 +682,33 @@ function SettingsPanel({ settings }: { settings: GameSettings }) {
   );
 }
 
-function ListConfig({ label, value, onChange }: { label: string; value: string[]; onChange: (value: string[]) => void }) {
+function ListConfig({
+  label,
+  value,
+  defaultValue,
+  onChange,
+}: {
+  label: string;
+  value: string[];
+  defaultValue: string[];
+  onChange: (value: string[]) => void;
+}) {
   return (
-    <label className="block">
-      <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{label}</span>
+    <label className="block rounded-sm border border-border/60 bg-background/20 p-3">
+      <span className="mb-2 flex items-center justify-between gap-3">
+        <span>
+          <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">{label}</span>
+          <span className="text-xs text-bone/70">{value.length} item{value.length === 1 ? "" : "s"}</span>
+        </span>
+        <span className="flex gap-2">
+          <button type="button" className="text-xs text-muted-foreground hover:text-blood" onClick={() => onChange([])}>
+            Limpar
+          </button>
+          <button type="button" className="text-xs text-muted-foreground hover:text-blood" onClick={() => onChange(defaultValue)}>
+            Padrão
+          </button>
+        </span>
+      </span>
       <Textarea
         value={value.join("\n")}
         onChange={(e) =>
