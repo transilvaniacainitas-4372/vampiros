@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,12 +33,12 @@ function MasterPanel() {
   const [chars, setChars] = useState<Row[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [tab, setTab] = useState<"pending" | "all">("pending");
+  const [section, setSection] = useState<"characters" | "players" | "settings" | "dice">("characters");
   const [preview, setPreview] = useState<Row | null>(null);
   const [reviewNote, setReviewNote] = useState("");
   const [newName, setNewName] = useState("");
   const [newClan, setNewClan] = useState("");
   const [newConcept, setNewConcept] = useState("");
-  const [diceMenuOpen, setDiceMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const load = async () => {
@@ -110,84 +110,180 @@ function MasterPanel() {
         </div>
       </header>
       <main className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="gothic-hero-title font-display uppercase tracking-widest text-2xl text-bone">Salão do Mestre</h1>
-          <Button className="dice-button-effect font-display uppercase tracking-widest" onClick={() => setDiceMenuOpen(true)}>
-            <Dice5 className="size-4 mr-2" />
-            Mesa de dados
-            {diceTable.requests.some((request) => request.active) && (
-              <span className="ml-2 rounded-sm border border-bone/30 px-1.5 py-0.5 text-[10px]">
-                {diceTable.requests.filter((request) => request.active).length}
-              </span>
-            )}
-          </Button>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-blood">Administração</p>
+            <h1 className="gothic-hero-title font-display uppercase tracking-widest text-2xl text-bone">Painel do Mestre</h1>
+          </div>
+          <div className="grid grid-cols-2 sm:flex gap-2">
+            <AdminTab active={section === "characters"} onClick={() => setSection("characters")}>Personagens</AdminTab>
+            <AdminTab active={section === "players"} onClick={() => setSection("players")}>Jogadores</AdminTab>
+            <AdminTab active={section === "settings"} onClick={() => setSection("settings")}>Cadastros</AdminTab>
+            <AdminTab active={section === "dice"} onClick={() => setSection("dice")}>
+              Mesa {diceTable.requests.filter((request) => request.active).length > 0 ? `(${diceTable.requests.filter((request) => request.active).length})` : ""}
+            </AdminTab>
+          </div>
         </div>
         <hr className="gothic-divider mb-8 mt-2" />
 
-        <section className="gothic-panel mb-10 border border-border/60 bg-card/40 p-6 rounded-sm">
-          <h2 className="font-display uppercase tracking-widest text-sm text-blood mb-4">Criar novo personagem</h2>
-          <div className="grid sm:grid-cols-3 gap-3 mb-3">
-            <Input placeholder="Nome" value={newName} onChange={(e)=>setNewName(e.target.value)} maxLength={80} />
-            <select
-              className="bg-input border border-border rounded-sm px-3 py-2 text-sm text-foreground"
-              value={newClan}
-              onChange={(e)=>setNewClan(e.target.value)}
-            >
-              <option value="">Selecione o clã</option>
-              {settings.clans.map((clan) => (
-                <option key={clan} value={clan}>{clan}</option>
-              ))}
-            </select>
-            <Input placeholder="Conceito" value={newConcept} onChange={(e)=>setNewConcept(e.target.value)} maxLength={120} />
+        {section === "characters" && (
+          <div className="grid lg:grid-cols-[360px_1fr] gap-6">
+            <section className="gothic-panel border border-border/60 bg-card/40 p-6 rounded-sm h-fit">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Cadastro</p>
+              <h2 className="font-display uppercase tracking-widest text-sm text-blood mb-5">Novo personagem</h2>
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Nome</span>
+                  <Input value={newName} onChange={(e)=>setNewName(e.target.value)} maxLength={80} />
+                </label>
+                <label className="block">
+                  <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Clã</span>
+                  <select
+                    className="w-full bg-input border border-border rounded-sm px-3 py-2 text-sm text-foreground"
+                    value={newClan}
+                    onChange={(e)=>setNewClan(e.target.value)}
+                  >
+                    <option value="">Selecione o clã</option>
+                    {settings.clans.map((clan) => (
+                      <option key={clan} value={clan}>{clan}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Conceito</span>
+                  <Input value={newConcept} onChange={(e)=>setNewConcept(e.target.value)} maxLength={120} />
+                </label>
+                <Button onClick={onCreate} className="w-full font-display uppercase tracking-widest">Cadastrar</Button>
+              </div>
+            </section>
+
+            <section className="gothic-panel border border-border/60 bg-card/40 rounded-sm overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 p-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Personagens</p>
+                  <h2 className="font-display uppercase tracking-widest text-sm text-bone">Ficha cadastral</h2>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={()=>setTab("pending")}
+                    className={`px-3 py-1.5 text-xs font-display uppercase tracking-widest border rounded-sm ${tab==="pending" ? "border-blood text-blood" : "border-border text-muted-foreground"}`}>
+                    Pendentes ({chars.filter(c=>c.status==="pending").length})
+                  </button>
+                  <button onClick={()=>setTab("all")}
+                    className={`px-3 py-1.5 text-xs font-display uppercase tracking-widest border rounded-sm ${tab==="all" ? "border-blood text-blood" : "border-border text-muted-foreground"}`}>
+                    Todos ({chars.length})
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[760px] text-sm">
+                  <thead className="bg-background/35 text-[10px] uppercase tracking-widest text-muted-foreground">
+                    <tr className="border-b border-border/60">
+                      <th className="px-4 py-3 text-left font-normal">Nome</th>
+                      <th className="px-4 py-3 text-left font-normal">Clã</th>
+                      <th className="px-4 py-3 text-left font-normal">Status</th>
+                      <th className="px-4 py-3 text-left font-normal">Jogador</th>
+                      <th className="px-4 py-3 text-right font-normal">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Nenhum registro encontrado.</td>
+                      </tr>
+                    )}
+                    {filtered.map((c) => (
+                      <tr key={c.id} className="border-b border-border/50 last:border-0">
+                        <td className="px-4 py-3">
+                          <div className="font-display uppercase tracking-widest text-bone">{c.name}</div>
+                          {c.concept && <div className="text-xs text-muted-foreground italic mt-1">{c.concept}</div>}
+                        </td>
+                        <td className="px-4 py-3 text-blood">{c.clan || "Indefinido"}</td>
+                        <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
+                        <td className="px-4 py-3">
+                          <select className="w-full bg-input border border-border rounded-sm px-2 py-1 text-xs"
+                            value={c.owner_id ?? ""}
+                            onChange={(e)=>onAssign(c.id, e.target.value || null)}>
+                            <option value="">Sem jogador</option>
+                            {players.map((p)=><option key={p.id} value={p.id}>{p.display_name ?? p.id.slice(0,8)}{p.status === "pending" ? " (pendente)" : ""}</option>)}
+                          </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" onClick={()=>{ setPreview(c); setReviewNote(c.review_note ?? ""); }}>Revisar</Button>
+                            <Button variant="outline" size="sm" onClick={()=>onDelete(c.id)}>Excluir</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
-          <Button onClick={onCreate} className="font-display uppercase tracking-widest">Invocar</Button>
-        </section>
+        )}
 
-        <SettingsPanel settings={settings} />
-
-        <div className="flex gap-2 mb-4">
-          <button onClick={()=>setTab("pending")}
-            className={`px-3 py-1.5 text-xs font-display uppercase tracking-widest border rounded-sm ${tab==="pending" ? "border-blood text-blood" : "border-border text-muted-foreground"}`}>
-            Pendentes ({chars.filter(c=>c.status==="pending").length})
-          </button>
-          <button onClick={()=>setTab("all")}
-            className={`px-3 py-1.5 text-xs font-display uppercase tracking-widest border rounded-sm ${tab==="all" ? "border-blood text-blood" : "border-border text-muted-foreground"}`}>
-            Todos ({chars.length})
-          </button>
-        </div>
-
-        <div className="space-y-2">
-          {filtered.length === 0 && <p className="text-muted-foreground text-sm">Nada aqui.</p>}
-          {filtered.map((c) => (
-            <div key={c.id} className="border border-border/60 bg-card/40 p-4 rounded-sm flex flex-wrap gap-4 items-center">
-              <div className="flex-1 min-w-[200px]">
-                <div className="font-display uppercase tracking-widest text-bone">{c.name}</div>
-                <div className="text-xs text-blood">{c.clan}</div>
-                {c.concept && <div className="text-xs text-muted-foreground italic mt-1">{c.concept}</div>}
-              </div>
-              <StatusBadge status={c.status} />
-              <select className="bg-input border border-border rounded-sm px-2 py-1 text-xs"
-                value={c.owner_id ?? ""}
-                onChange={(e)=>onAssign(c.id, e.target.value || null)}>
-                <option value="">— sem jogador —</option>
-                {players.map((p)=><option key={p.id} value={p.id}>{p.display_name ?? p.id.slice(0,8)}{p.status === "pending" ? " (pendente)" : ""}</option>)}
-              </select>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={()=>{ setPreview(c); setReviewNote(c.review_note ?? ""); }}>Revisar</Button>
-                <Button variant="outline" size="sm" onClick={()=>onDelete(c.id)}>Deletar</Button>
-              </div>
+        {section === "players" && (
+          <section className="gothic-panel border border-border/60 bg-card/40 rounded-sm overflow-hidden">
+            <div className="border-b border-border/60 p-4">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Jogadores</p>
+              <h2 className="font-display uppercase tracking-widest text-sm text-bone">Associação de contas</h2>
             </div>
-          ))}
-        </div>
-      </main>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead className="bg-background/35 text-[10px] uppercase tracking-widest text-muted-foreground">
+                  <tr className="border-b border-border/60">
+                    <th className="px-4 py-3 text-left font-normal">Jogador</th>
+                    <th className="px-4 py-3 text-left font-normal">Status</th>
+                    <th className="px-4 py-3 text-left font-normal">Personagem associado</th>
+                    <th className="px-4 py-3 text-left font-normal">Atribuir personagem</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {players.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">Nenhum jogador cadastrado.</td>
+                    </tr>
+                  )}
+                  {players.map((player) => {
+                    const assigned = chars.find((character) => character.owner_id === player.id);
+                    return (
+                      <tr key={player.id} className="border-b border-border/50 last:border-0">
+                        <td className="px-4 py-3">
+                          <div className="font-display uppercase tracking-widest text-bone">{player.display_name ?? "Sem nome"}</div>
+                          <div className="text-xs text-muted-foreground mt-1">{player.id.slice(0, 8)}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="px-2 py-1 text-[10px] uppercase tracking-widest border border-border rounded-sm text-muted-foreground">
+                            {player.status === "pending" ? "Aguardando" : "Ativo"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-blood">{assigned?.name ?? "Sem personagem"}</td>
+                        <td className="px-4 py-3">
+                          <select className="w-full bg-input border border-border rounded-sm px-2 py-1 text-xs"
+                            value={assigned?.id ?? ""}
+                            onChange={(event) => {
+                              const nextCharacterId = event.target.value;
+                              if (assigned) void onAssign(assigned.id, null);
+                              if (nextCharacterId) void onAssign(nextCharacterId, player.id);
+                            }}>
+                            <option value="">Sem personagem</option>
+                            {chars.map((character)=><option key={character.id} value={character.id}>{character.name}</option>)}
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
-      {diceMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-sm p-4 md:p-8 overflow-y-auto" onClick={() => setDiceMenuOpen(false)}>
-          <div className="max-w-6xl mx-auto" onClick={(event) => event.stopPropagation()}>
-            <DiceTablePanel chars={chars} diceTable={diceTable} onClose={() => setDiceMenuOpen(false)} />
-          </div>
-        </div>
-      )}
+        {section === "settings" && <SettingsPanel settings={settings} />}
+
+        {section === "dice" && <DiceTablePanel chars={chars} diceTable={diceTable} onClose={() => setSection("characters")} />}
+      </main>
 
       {preview && (
         <div className="fixed inset-0 bg-background/95 z-50 overflow-y-auto" onClick={()=>setPreview(null)}>
@@ -209,6 +305,30 @@ function MasterPanel() {
         </div>
       )}
     </div>
+  );
+}
+
+function AdminTab({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`border px-3 py-2 text-xs font-display uppercase tracking-widest rounded-sm transition-colors ${
+        active
+          ? "border-blood bg-blood/10 text-blood"
+          : "border-border/70 bg-card/30 text-muted-foreground hover:border-blood/50 hover:text-bone"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
