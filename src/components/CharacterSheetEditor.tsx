@@ -77,13 +77,6 @@ export function CharacterSheetEditor({
             onChange={(v) => setIdentity({ generation: v })}
           />
           <Text label="Senhor (Sire)" value={value.identity.sire} onChange={(v) => setIdentity({ sire: v })} />
-          <Text
-            label="Ambição"
-            value={value.identity.ambition}
-            onChange={(v) => setIdentity({ ambition: v })}
-            full
-          />
-          <Text label="Desejo" value={value.identity.desire} onChange={(v) => setIdentity({ desire: v })} full />
         </Grid>
       </Section>
 

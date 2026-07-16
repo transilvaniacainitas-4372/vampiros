@@ -19,8 +19,6 @@ export function CharacterSheetView({ sheet }: { sheet: Sheet }) {
           <Field label="Senhor" value={sheet.identity.sire} />
           <Field label="Crônica" value={sheet.identity.chronicle} />
           <Field label="Nome verdadeiro" value={sheet.identity.trueName} />
-          <Field label="Ambição" value={sheet.identity.ambition} />
-          <Field label="Desejo" value={sheet.identity.desire} />
         </div>
       </section>
 
