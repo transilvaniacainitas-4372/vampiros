@@ -693,35 +693,86 @@ function ListConfig({
   defaultValue: string[];
   onChange: (value: string[]) => void;
 }) {
+  const [draft, setDraft] = useState("");
+
+  const addItems = (raw: string) => {
+    const items = raw
+      .split(/[;\n,]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (items.length === 0) return;
+    onChange(Array.from(new Set([...value, ...items])));
+    setDraft("");
+  };
+
+  const removeItem = (item: string) => {
+    onChange(value.filter((current) => current !== item));
+  };
+
   return (
-    <label className="block rounded-sm border border-border/60 bg-background/20 p-3">
-      <span className="mb-2 flex items-center justify-between gap-3">
-        <span>
-          <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">{label}</span>
-          <span className="text-xs text-bone/70">{value.length} item{value.length === 1 ? "" : "s"}</span>
-        </span>
-        <span className="flex gap-2">
+    <div className="block rounded-sm border border-border/60 bg-background/20 p-3">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <div className="block text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
+          <div className="text-xs text-bone/70">{value.length} item{value.length === 1 ? "" : "s"}</div>
+        </div>
+        <div className="flex gap-2">
           <button type="button" className="text-xs text-muted-foreground hover:text-blood" onClick={() => onChange([])}>
             Limpar
           </button>
           <button type="button" className="text-xs text-muted-foreground hover:text-blood" onClick={() => onChange(defaultValue)}>
             Padrão
           </button>
-        </span>
-      </span>
-      <Textarea
-        value={value.join("\n")}
-        onChange={(e) =>
-          onChange(
-            e.target.value
-              .split("\n")
-              .map((item) => item.trim())
-              .filter(Boolean),
-          )
-        }
-        rows={5}
-      />
-    </label>
+        </div>
+      </div>
+
+      <div className="min-h-24 rounded-sm border border-border bg-input/50 p-2">
+        <div className="mb-2 flex flex-wrap gap-2">
+          {value.length === 0 && (
+            <span className="px-2 py-1 text-xs text-muted-foreground">Nenhum item cadastrado.</span>
+          )}
+          {value.map((item) => (
+            <span
+              key={item}
+              className="inline-flex max-w-full items-center gap-2 rounded-sm border border-blood/40 bg-blood/10 px-2 py-1 text-xs text-bone"
+            >
+              <span className="truncate">{item}</span>
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-blood"
+                aria-label={`Remover ${item}`}
+                onClick={() => removeItem(item)}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+        <input
+          value={draft}
+          onChange={(event) => {
+            const next = event.target.value;
+            if (/[;\n,]/.test(next)) {
+              addItems(next);
+              return;
+            }
+            setDraft(next);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              addItems(draft);
+            }
+            if (event.key === "Backspace" && !draft && value.length > 0) {
+              onChange(value.slice(0, -1));
+            }
+          }}
+          onBlur={() => addItems(draft)}
+          placeholder="Digite e use ; para cadastrar"
+          className="w-full bg-transparent px-1 py-1 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+        />
+      </div>
+    </div>
   );
 }
 
