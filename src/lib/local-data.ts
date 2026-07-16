@@ -198,9 +198,12 @@ export async function localCreateCharacter(input: {
 }
 
 export async function localListPlayers() {
-  return getLocalUsers()
-    .filter((user) => user.role !== "storyteller")
-    .map((user) => ({ id: user.id, display_name: user.display_name, status: user.status ?? "pending" }));
+  return getLocalUsers().map((user) => ({
+    id: user.id,
+    display_name: user.display_name,
+    role: user.role,
+    status: user.status ?? "pending",
+  }));
 }
 
 function updateLocalCharacter(idValue: string, updates: Partial<LocalCharacter>) {

@@ -19,7 +19,7 @@ type Row = {
   owner_id: string | null; review_note: string | null;
   sheet_draft: unknown; sheet_approved: unknown; portrait_url: string | null;
 };
-type Player = { id: string; display_name: string | null; status?: string };
+type Player = { id: string; display_name: string | null; role?: "player" | "storyteller"; status?: string };
 
 export const Route = createFileRoute("/_authenticated/mestre")({
   head: () => ({ meta: [{ title: "Painel do Mestre — Transylvania Chronicles" }] }),
@@ -205,7 +205,7 @@ function MasterPanel() {
                             value={c.owner_id ?? ""}
                             onChange={(e)=>onAssign(c.id, e.target.value || null)}>
                             <option value="">Sem jogador</option>
-                            {players.map((p)=><option key={p.id} value={p.id}>{p.display_name ?? p.id.slice(0,8)}{p.status === "pending" ? " (pendente)" : ""}</option>)}
+                            {players.map((p)=><option key={p.id} value={p.id}>{playerLabel(p)}</option>)}
                           </select>
                         </td>
                         <td className="px-4 py-3">
@@ -254,8 +254,12 @@ function MasterPanel() {
                           <div className="text-xs text-muted-foreground mt-1">{player.id.slice(0, 8)}</div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="px-2 py-1 text-[10px] uppercase tracking-widest border border-border rounded-sm text-muted-foreground">
-                            {player.status === "pending" ? "Aguardando" : "Ativo"}
+                          <span className={`px-2 py-1 text-[10px] uppercase tracking-widest border rounded-sm ${
+                            player.role === "storyteller"
+                              ? "border-blood/50 text-blood"
+                              : "border-border text-muted-foreground"
+                          }`}>
+                            {player.role === "storyteller" ? "Mestre" : player.status === "pending" ? "Aguardando" : "Jogador"}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-blood">{assigned?.name ?? "Sem personagem"}</td>
@@ -330,6 +334,13 @@ function AdminTab({
       {children}
     </button>
   );
+}
+
+function playerLabel(player: Player) {
+  const name = player.display_name ?? player.id.slice(0, 8);
+  const role = player.role === "storyteller" ? "Mestre" : "Jogador";
+  const status = player.status === "pending" ? " pendente" : "";
+  return `${name} (${role}${status})`;
 }
 
 function DiceTablePanel({

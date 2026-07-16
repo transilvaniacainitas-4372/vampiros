@@ -132,7 +132,21 @@ const listPlayersRemote = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("profiles").select("id, display_name").order("display_name");
     if (error) throw new Error(error.message);
-    return data ?? [];
+    const profiles = data ?? [];
+    return Promise.all(
+      profiles.map(async (profile) => {
+        const { data: isStoryteller } = await context.supabase.rpc("has_role", {
+          _user_id: profile.id,
+          _role: "storyteller",
+        });
+
+        return {
+          ...profile,
+          role: isStoryteller ? "storyteller" : "player",
+          status: "active",
+        };
+      }),
+    );
   });
 
 export const createCharacter = isLocalMode
