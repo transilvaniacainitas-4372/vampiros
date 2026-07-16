@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Transylvania Chronicles">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="70%">
+      <stop offset="0%" stop-color="#3b1014"/>
+      <stop offset="55%" stop-color="#16080a"/>
+      <stop offset="100%" stop-color="#050304"/>
+    </radialGradient>
+    <linearGradient id="blood" x1="18" y1="9" x2="48" y2="57">
+      <stop offset="0%" stop-color="#d5c7a3"/>
+      <stop offset="42%" stop-color="#9b1b24"/>
+      <stop offset="100%" stop-color="#4e0710"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="url(#bg)"/>
+  <path
+    d="M32 6 51 16v15c0 13.6-7.7 22.7-19 27-11.3-4.3-19-13.4-19-27V16L32 6Z"
+    fill="#0c0708"
+    stroke="#bcae8c"
+    stroke-width="2"
+  />
+  <path
+    d="M19 19c5.2 1 9.5-.1 13-4 3.5 3.9 7.8 5 13 4-3.1 3.2-5.1 7.1-6 11.7-.6 3.1-2.6 5.5-7 7.3-4.4-1.8-6.4-4.2-7-7.3-.9-4.6-2.9-8.5-6-11.7Z"
+    fill="url(#blood)"
+  />
+  <path d="M24 29c2.7.3 5 .1 8-3 3 3.1 5.3 3.3 8 3-1.2 3.4-3.9 5.9-8 7.4-4.1-1.5-6.8-4-8-7.4Z" fill="#080506"/>
+  <path d="M29 37h6l-3 12-3-12Z" fill="#a7141d"/>
+  <path d="M32 15v33" stroke="#d9c9a2" stroke-width="1.4" stroke-linecap="round" opacity=".55"/>
+  <path d="M22 50c5.4 3.4 14.6 3.4 20 0" stroke="#bcae8c" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".75"/>
+</svg>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-label="">
+  <defs>
+    <radialGradient id="bloodGlow" cx="50%" cy="42%" r="58%">
+      <stop offset="0%" stop-color="#9d1018" stop-opacity="0.96"/>
+      <stop offset="58%" stop-color="#6f0810" stop-opacity="0.72"/>
+      <stop offset="100%" stop-color="#210004" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softBleed">
+      <feGaussianBlur stdDeviation="2.4"/>
+    </filter>
+  </defs>
+
+  <path
+    d="M78 247C168 86 307 72 449 158C588 73 735 83 824 247C725 305 621 326 524 294C495 337 470 362 448 362C426 362 402 337 374 294C275 326 174 304 78 247Z"
+    fill="url(#bloodGlow)"
+    filter="url(#softBleed)"
+  />
+  <path
+    d="M111 244C190 119 303 105 447 188C591 105 710 119 790 244C704 286 612 300 523 265C492 304 469 325 448 325C427 325 405 304 376 265C285 300 196 286 111 244Z"
+    fill="#8f0b15"
+    opacity="0.78"
+  />
+  <path
+    d="M178 231C232 179 294 169 355 204C308 223 254 237 178 231Z"
+    fill="#090507"
+    opacity="0.72"
+  />
+  <path
+    d="M542 204C606 168 669 178 723 231C645 238 590 223 542 204Z"
+    fill="#090507"
+    opacity="0.72"
+  />
+  <path
+    d="M405 278C430 291 466 291 492 278C478 305 422 305 405 278Z"
+    fill="#300006"
+    opacity="0.55"
+  />
+  <path d="M206 279C206 279 191 327 203 352C212 371 229 360 223 340C216 315 206 279 206 279Z" fill="#760710" opacity="0.68"/>
+  <path d="M683 276C683 276 699 323 688 350C680 370 662 362 668 340C675 314 683 276 683 276Z" fill="#760710" opacity="0.68"/>
+  <path d="M450 320C450 320 430 390 448 429C459 454 479 438 471 410C462 376 450 320 450 320Z" fill="#8a0913" opacity="0.72"/>
+  <path d="M344 287C344 287 330 333 342 359C351 377 366 365 360 346C353 322 344 287 344 287Z" fill="#65060d" opacity="0.56"/>
+  <path d="M552 286C552 286 569 331 558 358C550 376 533 365 539 344C546 320 552 286 552 286Z" fill="#65060d" opacity="0.56"/>
+</svg>
