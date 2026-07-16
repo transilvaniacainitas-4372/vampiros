@@ -1,0 +1,584 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { Check, Dice5, Minus, Play, Plus, ScrollText, UserRound, X } from "lucide-react";
+import {
+  createCharacter, approveDraft, rejectDraft, assignPlayer, deleteCharacter, listPlayers,
+} from "@/lib/characters.functions";
+import { CharacterSheetView } from "@/components/CharacterSheetView";
+import { sheetSchema } from "@/lib/character-schema";
+import { saveGameSettings, useGameSettings, type GameSettings } from "@/lib/game-settings";
+import { clearOldDiceRequests, closeDiceRequest, createDiceRequest, rollDice, useDiceTable } from "@/lib/dice-table";
+
+type Row = {
+  id: string; name: string; clan: string | null; concept: string | null; status: string;
+  owner_id: string | null; review_note: string | null;
+  sheet_draft: unknown; sheet_approved: unknown; portrait_url: string | null;
+};
+type Player = { id: string; display_name: string | null; status?: string };
+
+export const Route = createFileRoute("/_authenticated/mestre")({
+  head: () => ({ meta: [{ title: "Painel do Mestre — Transylvania Chronicles" }] }),
+  component: MasterPanel,
+});
+
+function MasterPanel() {
+  const settings = useGameSettings();
+  const diceTable = useDiceTable();
+  const [isMaster, setIsMaster] = useState<boolean | null>(null);
+  const [chars, setChars] = useState<Row[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [tab, setTab] = useState<"pending" | "all">("pending");
+  const [preview, setPreview] = useState<Row | null>(null);
+  const [reviewNote, setReviewNote] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newClan, setNewClan] = useState("");
+  const [newConcept, setNewConcept] = useState("");
+  const [diceMenuOpen, setDiceMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const load = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data: st } = await supabase.rpc("has_role", { _user_id: user.id, _role: "storyteller" });
+    setIsMaster(!!st);
+    if (!st) return;
+    const { data: cs } = await supabase.from("characters")
+      .select("id, name, clan, concept, status, owner_id, review_note, sheet_draft, sheet_approved, portrait_url")
+      .order("updated_at", { ascending: false });
+    setChars((cs ?? []) as Row[]);
+    try { setPlayers(await listPlayers()); } catch {}
+  };
+  useEffect(() => { load(); }, []);
+
+  if (isMaster === null) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Verificando...</div>;
+  if (!isMaster) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="font-display text-blood text-2xl uppercase tracking-widest">Acesso negado</h1>
+        <p className="text-muted-foreground text-sm mt-2">Apenas o mestre da crônica pode acessar este salão.</p>
+        <Link to="/" className="text-sm text-muted-foreground hover:text-blood mt-4 inline-block">← Voltar</Link>
+      </div>
+    </div>
+  );
+
+  const filtered = tab === "pending" ? chars.filter((c) => c.status === "pending") : chars;
+
+  const onCreate = async () => {
+    if (!newName.trim()) return;
+    try {
+      await createCharacter({ data: { name: newName, clan: newClan, concept: newConcept } });
+      toast.success("Personagem criado.");
+      setNewName(""); setNewClan(""); setNewConcept("");
+      await load();
+    } catch (e: any) { toast.error(e.message); }
+  };
+  const onApprove = async (id: string) => {
+    try { await approveDraft({ data: { id } }); toast.success("Aprovado."); setPreview(null); await load(); }
+    catch (e: any) { toast.error(e.message); }
+  };
+  const onReject = async (id: string) => {
+    try { await rejectDraft({ data: { id, note: reviewNote } }); toast.success("Rejeitado."); setReviewNote(""); setPreview(null); await load(); }
+    catch (e: any) { toast.error(e.message); }
+  };
+  const onAssign = async (id: string, ownerId: string | null) => {
+    try { await assignPlayer({ data: { id, ownerId } }); toast.success("Jogador atribuído."); await load(); }
+    catch (e: any) { toast.error(e.message); }
+  };
+  const onDelete = async (id: string) => {
+    if (!confirm("Deletar este personagem?")) return;
+    try { await deleteCharacter({ data: { id } }); toast.success("Deletado."); await load(); }
+    catch (e: any) { toast.error(e.message); }
+  };
+
+  const previewSheet = preview ? sheetSchema.safeParse(preview.sheet_draft) : null;
+
+  return (
+    <div className="gothic-vault-bg min-h-screen">
+      <header className="gothic-nav border-b border-border/50">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex flex-wrap gap-4 justify-between items-center">
+          <Link to="/" className="font-display uppercase tracking-[0.3em] text-blood text-sm">Transylvania Chronicles</Link>
+          <nav className="flex flex-wrap items-center gap-3">
+            <Link to="/mesa" className="font-display uppercase tracking-widest text-xs hover:text-blood">Mesa</Link>
+            <Link to="/mestre" className="font-display uppercase tracking-widest text-xs text-blood">Mestre</Link>
+            <Button variant="outline" size="sm" onClick={async ()=>{ await supabase.auth.signOut(); navigate({ to: "/" }); }}>Sair</Button>
+          </nav>
+        </div>
+      </header>
+      <main className="max-w-6xl mx-auto px-6 py-10">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="gothic-hero-title font-display uppercase tracking-widest text-2xl text-bone">Salão do Mestre</h1>
+          <Button className="dice-button-effect font-display uppercase tracking-widest" onClick={() => setDiceMenuOpen(true)}>
+            <Dice5 className="size-4 mr-2" />
+            Mesa de dados
+            {diceTable.requests.some((request) => request.active) && (
+              <span className="ml-2 rounded-sm border border-bone/30 px-1.5 py-0.5 text-[10px]">
+                {diceTable.requests.filter((request) => request.active).length}
+              </span>
+            )}
+          </Button>
+        </div>
+        <hr className="gothic-divider mb-8 mt-2" />
+
+        <section className="gothic-panel mb-10 border border-border/60 bg-card/40 p-6 rounded-sm">
+          <h2 className="font-display uppercase tracking-widest text-sm text-blood mb-4">Criar novo personagem</h2>
+          <div className="grid sm:grid-cols-3 gap-3 mb-3">
+            <Input placeholder="Nome" value={newName} onChange={(e)=>setNewName(e.target.value)} maxLength={80} />
+            <select
+              className="bg-input border border-border rounded-sm px-3 py-2 text-sm text-foreground"
+              value={newClan}
+              onChange={(e)=>setNewClan(e.target.value)}
+            >
+              <option value="">Selecione o clã</option>
+              {settings.clans.map((clan) => (
+                <option key={clan} value={clan}>{clan}</option>
+              ))}
+            </select>
+            <Input placeholder="Conceito" value={newConcept} onChange={(e)=>setNewConcept(e.target.value)} maxLength={120} />
+          </div>
+          <Button onClick={onCreate} className="font-display uppercase tracking-widest">Invocar</Button>
+        </section>
+
+        <SettingsPanel settings={settings} />
+
+        <div className="flex gap-2 mb-4">
+          <button onClick={()=>setTab("pending")}
+            className={`px-3 py-1.5 text-xs font-display uppercase tracking-widest border rounded-sm ${tab==="pending" ? "border-blood text-blood" : "border-border text-muted-foreground"}`}>
+            Pendentes ({chars.filter(c=>c.status==="pending").length})
+          </button>
+          <button onClick={()=>setTab("all")}
+            className={`px-3 py-1.5 text-xs font-display uppercase tracking-widest border rounded-sm ${tab==="all" ? "border-blood text-blood" : "border-border text-muted-foreground"}`}>
+            Todos ({chars.length})
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          {filtered.length === 0 && <p className="text-muted-foreground text-sm">Nada aqui.</p>}
+          {filtered.map((c) => (
+            <div key={c.id} className="border border-border/60 bg-card/40 p-4 rounded-sm flex flex-wrap gap-4 items-center">
+              <div className="flex-1 min-w-[200px]">
+                <div className="font-display uppercase tracking-widest text-bone">{c.name}</div>
+                <div className="text-xs text-blood">{c.clan}</div>
+                {c.concept && <div className="text-xs text-muted-foreground italic mt-1">{c.concept}</div>}
+              </div>
+              <StatusBadge status={c.status} />
+              <select className="bg-input border border-border rounded-sm px-2 py-1 text-xs"
+                value={c.owner_id ?? ""}
+                onChange={(e)=>onAssign(c.id, e.target.value || null)}>
+                <option value="">— sem jogador —</option>
+                {players.map((p)=><option key={p.id} value={p.id}>{p.display_name ?? p.id.slice(0,8)}{p.status === "pending" ? " (pendente)" : ""}</option>)}
+              </select>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={()=>{ setPreview(c); setReviewNote(c.review_note ?? ""); }}>Revisar</Button>
+                <Button variant="outline" size="sm" onClick={()=>onDelete(c.id)}>Deletar</Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+
+      {diceMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-sm p-4 md:p-8 overflow-y-auto" onClick={() => setDiceMenuOpen(false)}>
+          <div className="max-w-6xl mx-auto" onClick={(event) => event.stopPropagation()}>
+            <DiceTablePanel chars={chars} diceTable={diceTable} onClose={() => setDiceMenuOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      {preview && (
+        <div className="fixed inset-0 bg-background/95 z-50 overflow-y-auto" onClick={()=>setPreview(null)}>
+          <div className="max-w-5xl mx-auto my-10 p-6 border border-border bg-card rounded-sm" onClick={(e)=>e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="font-display uppercase tracking-widest text-xl text-bone">Revisar rascunho: {preview.name}</h2>
+              <button onClick={()=>setPreview(null)} className="text-muted-foreground hover:text-blood">×</button>
+            </div>
+            <hr className="blood-rule mb-6" />
+            {previewSheet?.success ? <CharacterSheetView sheet={previewSheet.data} /> : <p className="text-muted-foreground text-sm">Sem rascunho válido.</p>}
+            <div className="sticky bottom-0 bg-card border-t border-border pt-4 mt-6">
+              <Textarea placeholder="Nota (obrigatória para rejeitar)" value={reviewNote} onChange={(e)=>setReviewNote(e.target.value)} maxLength={1000} className="mb-3" />
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={()=>onReject(preview.id)} disabled={!reviewNote.trim()}>Rejeitar</Button>
+                <Button onClick={()=>onApprove(preview.id)} className="font-display uppercase tracking-widest">Aprovar</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DiceTablePanel({
+  chars,
+  diceTable,
+  onClose,
+}: {
+  chars: Row[];
+  diceTable: ReturnType<typeof useDiceTable>;
+  onClose: () => void;
+}) {
+  const [title, setTitle] = useState("Teste de dados");
+  const [note, setNote] = useState("");
+  const [masterDiceCount, setMasterDiceCount] = useState(5);
+  const [masterSides, setMasterSides] = useState(10);
+  const [targetIds, setTargetIds] = useState<string[]>([]);
+
+  const playerChars = chars.filter((character) => character.owner_id);
+  const activeRequests = diceTable.requests.filter((request) => request.active);
+  const calledCount = targetIds.length;
+
+  const toggleTarget = (id: string) => {
+    setTargetIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+  };
+
+  const selectAll = () => setTargetIds(playerChars.map((character) => character.id));
+
+  const onCreate = () => {
+    if (targetIds.length === 0) {
+      toast.error("Escolha pelo menos um personagem para chamar.");
+      return;
+    }
+    createDiceRequest({ title, note, targetCharacterIds: targetIds });
+    toast.success("Mesa de dados habilitada.");
+    setTargetIds([]);
+  };
+
+  const onMasterRoll = (requestId: string) => {
+    try {
+      rollDice(requestId, null, { diceCount: masterDiceCount, sides: masterSides });
+      toast.success("Rolagem do mestre registrada.");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  return (
+    <section className="gothic-panel dice-panel-effect mb-10 overflow-hidden border border-blood/35 bg-card/50 rounded-sm">
+      <div className="border-b border-border/60 bg-background/35 p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="grid size-11 place-items-center border border-blood/50 bg-blood/10 text-blood rounded-sm">
+              <Dice5 className="size-5" />
+            </div>
+            <div>
+              <h2 className="font-display uppercase tracking-widest text-sm text-blood">Mesa de dados</h2>
+              <p className="text-xs text-muted-foreground mt-1">Chame os personagens e acompanhe as rolagens manuais de cada jogador.</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={clearOldDiceRequests}>
+              <ScrollText className="size-4 mr-2" />
+              Limpar fechadas
+            </Button>
+            <Button variant="outline" size="sm" onClick={onClose}>
+              <X className="size-4 mr-2" />
+              Fechar menu
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-[330px_1fr] gap-0">
+        <div className="border-b lg:border-b-0 lg:border-r border-border/60 p-6 bg-background/20">
+          <div className="mb-5">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Chamada</span>
+            <div className="dice-glow mt-2 border border-blood/40 bg-background/50 p-4 rounded-sm">
+              <div className="font-display text-2xl text-bone uppercase tracking-widest">Rolagem manual</div>
+              <p className="text-xs text-muted-foreground mt-2">O mestre chama a mesa. Cada jogador escolhe a quantidade de dados e lados quando for rolar.</p>
+            </div>
+          </div>
+
+          <label className="block mt-5">
+            <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Cena ou teste</span>
+            <Input placeholder="Nome da rolagem" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </label>
+
+          <label className="block mt-3">
+            <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Recado</span>
+            <Textarea
+              placeholder="Mensagem para os jogadores"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={3}
+            />
+          </label>
+
+          <Button onClick={onCreate} className="dice-button-effect font-display uppercase tracking-widest w-full mt-4">
+            <Play className="size-4 mr-2" />
+            Habilitar mesa
+          </Button>
+
+          <div className="mt-6 border border-border/60 bg-background/25 p-4 rounded-sm">
+            <div className="font-display uppercase tracking-widest text-sm text-bone mb-3">Rolagem do mestre</div>
+            <DiceStepper label="Dados" value={masterDiceCount} min={1} max={50} onChange={setMasterDiceCount} />
+            <DiceStepper label="Lados" value={masterSides} min={2} max={100} onChange={setMasterSides} />
+            <p className="text-xs text-muted-foreground">Essa fórmula será usada quando clicar em Mestre em uma mesa ativa.</p>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Convocados</span>
+              <div className="text-sm text-bone">{calledCount} selecionado{calledCount === 1 ? "" : "s"}</div>
+            </div>
+            <button type="button" className="text-xs text-blood hover:underline" onClick={selectAll}>Selecionar todos</button>
+          </div>
+
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
+            {playerChars.length === 0 && <p className="text-sm text-muted-foreground">Associe jogadores aos personagens para chama-los na mesa.</p>}
+            {playerChars.map((character) => {
+              const selected = targetIds.includes(character.id);
+              return (
+                <button
+                  key={character.id}
+                  type="button"
+                  onClick={() => toggleTarget(character.id)}
+                  className={`dice-button-effect text-left min-h-20 border p-3 rounded-sm transition ${selected ? "dice-selected-effect border-blood bg-blood/10" : "border-border/60 bg-background/25 hover:border-blood/40"}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 text-bone">
+                        <UserRound className="size-4 text-blood" />
+                        <span className="truncate text-sm">{character.name}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">{character.clan || "Cla indefinido"}</div>
+                    </div>
+                    <span className={`grid size-6 place-items-center border rounded-sm ${selected ? "border-blood text-blood" : "border-border text-muted-foreground"}`}>
+                      {selected && <Check className="size-4" />}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="space-y-4">
+            {activeRequests.length === 0 && (
+              <div className="border border-dashed border-border/70 p-6 rounded-sm text-center">
+                <Dice5 className="size-8 mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhuma mesa ativa agora.</p>
+              </div>
+            )}
+            {activeRequests.map((request) => {
+              const completed = request.targets.filter((target) =>
+                request.results.some((result) => result.targetCharacterId === target.characterId),
+              ).length;
+              return (
+                <div key={request.id} className="dice-panel-effect border border-border/70 bg-background/30 rounded-sm overflow-hidden">
+                  <div className="p-4 border-b border-border/60 bg-card/40">
+                    <div className="flex flex-wrap justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <DiceBadge diceCount={request.diceCount} sides={request.sides} />
+                          <div>
+                            <div className="font-display uppercase tracking-widest text-bone">{request.title}</div>
+                            <div className="text-xs text-muted-foreground">{completed}/{request.targets.length} jogadores rolaram</div>
+                          </div>
+                        </div>
+                        {request.note && <p className="text-sm text-muted-foreground mt-3">{request.note}</p>}
+                      </div>
+                      <div className="flex gap-2 h-fit">
+                        <Button className="dice-button-effect" variant="outline" size="sm" onClick={() => onMasterRoll(request.id)}>
+                          <Dice5 className="size-4 mr-2" />
+                          Mestre
+                        </Button>
+                        <Button className="dice-button-effect" variant="outline" size="sm" onClick={() => closeDiceRequest(request.id)}>
+                          <X className="size-4 mr-2" />
+                          Fechar
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-3 p-4">
+                    {request.targets.map((target) => {
+                      const result = request.results.find((item) => item.targetCharacterId === target.characterId);
+                      return <RollStatusCard key={target.characterId} name={target.characterName} result={result} />;
+                    })}
+                  </div>
+
+                  {request.results.filter((result) => !result.targetCharacterId).length > 0 && (
+                    <div className="border-t border-border/60 p-4 space-y-2">
+                      {request.results.filter((result) => !result.targetCharacterId).map((result) => (
+                        <div key={result.id} className="border border-blood/40 bg-blood/5 p-3 rounded-sm">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <span className="font-display uppercase tracking-widest text-sm text-bone">Rolagem do mestre</span>
+                            <ResultDiceStrip rolls={result.rolls} total={result.total} diceCount={result.diceCount} sides={result.sides} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DiceStepper({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div className="mb-3">
+      <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{label}</span>
+      <div className="grid grid-cols-[40px_1fr_40px] border border-border rounded-sm overflow-hidden bg-input">
+        <button type="button" className="grid place-items-center hover:bg-blood/10" onClick={() => onChange(Math.max(min, value - 1))}>
+          <Minus className="size-4" />
+        </button>
+        <input
+          className="bg-transparent text-center py-2 text-sm border-x border-border outline-none"
+          type="number"
+          min={min}
+          max={max}
+          value={value}
+          onChange={(event) => onChange(Math.min(max, Math.max(min, parseInt(event.target.value || String(min), 10))))}
+        />
+        <button type="button" className="grid place-items-center hover:bg-blood/10" onClick={() => onChange(Math.min(max, value + 1))}>
+          <Plus className="size-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DiceBadge({ diceCount, sides }: { diceCount: number; sides: number }) {
+  const label = diceCount > 0 && sides > 0 ? `${diceCount}d${sides}` : "Manual";
+  return (
+    <div className="grid size-14 place-items-center border border-blood/50 bg-blood/10 rounded-sm text-center shrink-0">
+      <Dice5 className="size-5 text-blood" />
+      <span className="text-[10px] text-bone leading-none">{label}</span>
+    </div>
+  );
+}
+
+function RollStatusCard({
+  name,
+  result,
+}: {
+  name: string;
+  result?: { rolls: number[]; total: number; diceCount?: number; sides?: number } | null;
+}) {
+  return (
+    <div className={`border p-3 rounded-sm ${result ? "border-emerald-500/35 bg-emerald-500/5" : "border-amber-500/35 bg-amber-500/5"}`}>
+      <div className="flex justify-between gap-3 mb-3">
+        <span className="text-sm text-bone">{name}</span>
+        <span className={`text-[10px] uppercase tracking-widest ${result ? "text-emerald-400" : "text-amber-400"}`}>
+          {result ? "Rolado" : "Aguardando"}
+        </span>
+      </div>
+      {result ? (
+        <ResultDiceStrip rolls={result.rolls} total={result.total} diceCount={result.diceCount} sides={result.sides} />
+      ) : (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="dice-pending-effect grid size-7 place-items-center border border-amber-500/35 rounded-sm">?</span>
+          Esperando jogador
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResultDiceStrip({ rolls, total, diceCount, sides }: { rolls: number[]; total: number; diceCount?: number; sides?: number }) {
+  const formula = diceCount && sides ? `${diceCount}d${sides}` : `${rolls.length}d?`;
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="font-display uppercase tracking-widest text-blood text-sm">{formula} Total {total}</span>
+      <div className="flex flex-wrap gap-1">
+        {rolls.slice(0, 12).map((roll, index) => (
+          <span
+            key={`${roll}-${index}`}
+            className="dice-face-effect grid size-7 place-items-center border border-border bg-background rounded-sm text-xs text-bone"
+            style={{ animationDelay: `${index * 35}ms` }}
+          >
+            {roll}
+          </span>
+        ))}
+        {rolls.length > 12 && <span className="text-xs text-muted-foreground self-center">+{rolls.length - 12}</span>}
+      </div>
+    </div>
+  );
+}
+
+function SettingsPanel({ settings }: { settings: GameSettings }) {
+  const update = (patch: Partial<GameSettings>) => saveGameSettings({ ...settings, ...patch });
+  const updateSkills = (key: keyof GameSettings["skills"], value: string[]) =>
+    saveGameSettings({ ...settings, skills: { ...settings.skills, [key]: value } });
+
+  return (
+    <section className="gothic-panel mb-10 border border-border/60 bg-card/40 p-6 rounded-sm">
+      <h2 className="font-display uppercase tracking-widest text-sm text-blood mb-4">Configurações da Crônica</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ListConfig label="Clãs" value={settings.clans} onChange={(v) => update({ clans: v })} />
+        <ListConfig label="Naturezas" value={settings.natures} onChange={(v) => update({ natures: v })} />
+        <ListConfig label="Comportamentos" value={settings.demeanors} onChange={(v) => update({ demeanors: v })} />
+        <ListConfig label="Refúgios" value={settings.havens} onChange={(v) => update({ havens: v })} />
+        <ListConfig label="Crônicas" value={settings.chronicles} onChange={(v) => update({ chronicles: v })} />
+        <ListConfig label="Conceitos" value={settings.concepts} onChange={(v) => update({ concepts: v })} />
+        <ListConfig label="Habilidades físicas" value={settings.skills.fisicas} onChange={(v) => updateSkills("fisicas", v)} />
+        <ListConfig label="Habilidades sociais" value={settings.skills.sociais} onChange={(v) => updateSkills("sociais", v)} />
+        <ListConfig label="Habilidades mentais" value={settings.skills.mentais} onChange={(v) => updateSkills("mentais", v)} />
+        <ListConfig label="Estados" value={settings.states} onChange={(v) => update({ states: v })} />
+        <label className="block">
+          <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Nível máximo das habilidades</span>
+          <Input
+            type="number"
+            min={1}
+            max={10}
+            value={settings.skillMax}
+            onChange={(e) => update({ skillMax: parseInt(e.target.value || "5", 10) || 5 })}
+          />
+        </label>
+      </div>
+    </section>
+  );
+}
+
+function ListConfig({ label, value, onChange }: { label: string; value: string[]; onChange: (value: string[]) => void }) {
+  return (
+    <label className="block">
+      <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{label}</span>
+      <Textarea
+        value={value.join("\n")}
+        onChange={(e) =>
+          onChange(
+            e.target.value
+              .split("\n")
+              .map((item) => item.trim())
+              .filter(Boolean),
+          )
+        }
+        rows={5}
+      />
+    </label>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    approved: { label: "Aprovada", cls: "border-emerald-500/50 text-emerald-400" },
+    pending: { label: "Pendente", cls: "border-amber-500/50 text-amber-400" },
+    draft: { label: "Rascunho", cls: "border-border text-muted-foreground" },
+    rejected: { label: "Rejeitada", cls: "border-destructive text-destructive" },
+  };
+  const s = map[status] ?? map.draft;
+  return <span className={`px-2 py-1 text-[10px] uppercase tracking-widest border rounded-sm ${s.cls}`}>{s.label}</span>;
+}

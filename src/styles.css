@@ -1,0 +1,406 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-blood: var(--blood);
+  --color-bone: var(--bone);
+  --color-ash: var(--ash);
+  --font-display: "Cinzel", serif;
+  --font-body: "EB Garamond", serif;
+  --font-sans: "Cormorant Garamond", serif;
+}
+
+:root {
+  --radius: 0.25rem;
+  /* Gótico-punk V5: preto profundo, sangue oxidado, osso */
+  --background: oklch(0.12 0.01 20);
+  --foreground: oklch(0.92 0.02 60);
+  --card: oklch(0.16 0.015 20);
+  --card-foreground: oklch(0.92 0.02 60);
+  --popover: oklch(0.14 0.01 20);
+  --popover-foreground: oklch(0.92 0.02 60);
+  --primary: oklch(0.45 0.18 25); /* vermelho sangue */
+  --primary-foreground: oklch(0.96 0.01 60);
+  --secondary: oklch(0.22 0.02 30);
+  --secondary-foreground: oklch(0.9 0.02 60);
+  --muted: oklch(0.2 0.01 30);
+  --muted-foreground: oklch(0.62 0.02 50);
+  --accent: oklch(0.38 0.16 25);
+  --accent-foreground: oklch(0.96 0.01 60);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.96 0.01 60);
+  --border: oklch(0.28 0.02 25);
+  --input: oklch(0.22 0.015 25);
+  --ring: oklch(0.45 0.18 25);
+  --blood: oklch(0.42 0.20 25);
+  --bone: oklch(0.88 0.03 75);
+  --ash: oklch(0.55 0.01 40);
+}
+
+.dark {
+  --background: oklch(0.12 0.01 20);
+  --foreground: oklch(0.92 0.02 60);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  body {
+    position: relative;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-body);
+    background-image:
+      radial-gradient(ellipse at top, oklch(0.18 0.02 20) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom, oklch(0.15 0.03 25) 0%, transparent 60%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, oklch(0.04 0.012 20 / 0.45), oklch(0.05 0.018 24 / 0.58)),
+      url("/fundo-2.jfif") center / cover no-repeat;
+    opacity: 0.32;
+    filter: saturate(0.9) contrast(1.02);
+  }
+
+  body > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+  }
+}
+
+@utility text-blood { color: var(--color-blood); }
+@utility bg-blood { background-color: var(--color-blood); }
+@utility border-blood { border-color: var(--color-blood); }
+@utility text-bone { color: var(--color-bone); }
+@utility font-display { font-family: var(--font-display); }
+@utility font-body { font-family: var(--font-body); }
+
+@utility blood-rule {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-blood), transparent);
+}
+
+@layer utilities {
+  .dice-panel-effect {
+    position: relative;
+    box-shadow: 0 18px 60px color-mix(in oklch, var(--color-blood) 12%, transparent);
+    animation: dice-panel-enter 360ms ease-out both;
+  }
+
+  .dice-panel-effect::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(110deg, transparent 0%, color-mix(in oklch, var(--color-bone) 10%, transparent) 45%, transparent 62%),
+      linear-gradient(to bottom, color-mix(in oklch, var(--color-blood) 10%, transparent), transparent 34%);
+    opacity: 0.18;
+    transform: translateX(-35%);
+    animation: dice-sweep 7s ease-in-out infinite;
+  }
+
+  .dice-glow {
+    box-shadow:
+      0 0 0 1px color-mix(in oklch, var(--color-blood) 28%, transparent),
+      0 0 28px color-mix(in oklch, var(--color-blood) 22%, transparent);
+  }
+
+  .dice-callout-effect {
+    position: relative;
+    animation: dice-panel-enter 320ms ease-out both, dice-alert-pulse 2.8s ease-in-out infinite;
+  }
+
+  .dice-selected-effect {
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--color-blood) 40%, transparent);
+    animation: dice-select-pop 180ms ease-out both;
+  }
+
+  .dice-pending-effect {
+    animation: dice-waiting 1.7s ease-in-out infinite;
+  }
+
+  .dice-face-effect {
+    transform-origin: center;
+    animation: dice-face-roll 420ms cubic-bezier(.2,.8,.2,1) both;
+  }
+
+  .dice-button-effect {
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  }
+
+  .dice-button-effect:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px color-mix(in oklch, var(--color-blood) 16%, transparent);
+  }
+
+  .dice-button-effect:active {
+    transform: translateY(1px) scale(0.99);
+  }
+
+  .velvet-table {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 30% 20%, color-mix(in oklch, var(--color-blood) 42%, transparent), transparent 42%),
+      radial-gradient(ellipse at 72% 76%, color-mix(in oklch, var(--color-blood) 30%, transparent), transparent 48%),
+      linear-gradient(135deg, oklch(0.22 0.09 24), oklch(0.12 0.055 24) 58%, oklch(0.18 0.08 24));
+    box-shadow:
+      inset 0 0 55px oklch(0.05 0.02 20),
+      inset 0 0 140px color-mix(in oklch, var(--color-blood) 28%, transparent),
+      0 22px 70px oklch(0.05 0.02 20 / 0.75);
+  }
+
+  .velvet-table::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.16;
+    background-image:
+      linear-gradient(45deg, transparent 0 46%, color-mix(in oklch, var(--color-bone) 18%, transparent) 49% 51%, transparent 54% 100%),
+      repeating-linear-gradient(90deg, transparent 0 11px, color-mix(in oklch, var(--color-bone) 8%, transparent) 12px 13px);
+    mix-blend-mode: screen;
+  }
+
+  .velvet-table-inner {
+    position: relative;
+    background:
+      radial-gradient(circle at 50% 0%, color-mix(in oklch, var(--color-bone) 8%, transparent), transparent 36%),
+      color-mix(in oklch, var(--color-background) 36%, transparent);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklch, var(--color-bone) 8%, transparent),
+      inset 0 0 44px oklch(0.04 0.02 20 / 0.55);
+  }
+
+  .table-call-card {
+    box-shadow:
+      0 12px 28px oklch(0.05 0.02 20 / 0.4),
+      inset 0 1px 0 color-mix(in oklch, var(--color-bone) 9%, transparent);
+  }
+
+  .gothic-vault-bg {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .gothic-vault-bg::before {
+    content: none;
+  }
+
+  .gothic-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background:
+      linear-gradient(to bottom, color-mix(in oklch, var(--color-background) 92%, black), color-mix(in oklch, var(--color-background) 72%, transparent)),
+      color-mix(in oklch, var(--color-card) 72%, transparent);
+    box-shadow:
+      0 10px 35px oklch(0.04 0.02 20 / 0.45),
+      inset 0 -1px 0 color-mix(in oklch, var(--color-blood) 28%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .gothic-hero-title {
+    text-shadow:
+      0 0 22px color-mix(in oklch, var(--color-blood) 28%, transparent),
+      0 2px 0 oklch(0.04 0.01 20);
+  }
+
+  .gothic-panel {
+    position: relative;
+    border-color: color-mix(in oklch, var(--color-bone) 16%, var(--color-border));
+    background:
+      linear-gradient(to bottom, color-mix(in oklch, var(--color-card) 86%, transparent), color-mix(in oklch, var(--color-background) 62%, transparent)),
+      color-mix(in oklch, var(--color-card) 80%, transparent);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklch, var(--color-bone) 8%, transparent),
+      0 18px 55px oklch(0.04 0.02 20 / 0.5);
+  }
+
+  .gothic-panel::before,
+  .gothic-panel::after {
+    content: "";
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    pointer-events: none;
+    opacity: 0.75;
+  }
+
+  .gothic-panel::before {
+    left: 10px;
+    top: 10px;
+    border-left: 1px solid color-mix(in oklch, var(--color-bone) 34%, transparent);
+    border-top: 1px solid color-mix(in oklch, var(--color-bone) 24%, transparent);
+  }
+
+  .gothic-panel::after {
+    right: 10px;
+    bottom: 10px;
+    border-right: 1px solid color-mix(in oklch, var(--color-bone) 34%, transparent);
+    border-bottom: 1px solid color-mix(in oklch, var(--color-bone) 24%, transparent);
+  }
+
+  .gothic-arch-card {
+    overflow: hidden;
+    border-radius: 46% 46% 2px 2px / 11% 11% 2px 2px;
+    box-shadow:
+      0 18px 45px oklch(0.04 0.02 20 / 0.55),
+      inset 0 1px 0 color-mix(in oklch, var(--color-bone) 10%, transparent);
+  }
+
+  .gothic-arch-card::before {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    pointer-events: none;
+    border-top: 1px solid color-mix(in oklch, var(--color-bone) 18%, transparent);
+    border-left: 1px solid color-mix(in oklch, var(--color-bone) 10%, transparent);
+    border-right: 1px solid color-mix(in oklch, var(--color-bone) 10%, transparent);
+    border-radius: 48% 48% 2px 2px / 13% 13% 2px 2px;
+    z-index: 2;
+  }
+
+  .gothic-summary-card {
+    overflow: hidden;
+    border-radius: 2px;
+    box-shadow:
+      0 18px 45px oklch(0.04 0.02 20 / 0.55),
+      inset 0 1px 0 color-mix(in oklch, var(--color-bone) 10%, transparent);
+  }
+
+  .gothic-summary-card::before {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    pointer-events: none;
+    border: 1px solid color-mix(in oklch, var(--color-bone) 12%, transparent);
+    box-shadow: inset 0 0 28px color-mix(in oklch, var(--color-blood) 10%, transparent);
+    z-index: 1;
+  }
+
+  .gothic-divider {
+    height: 1px;
+    border: 0;
+    background:
+      linear-gradient(to right, transparent, color-mix(in oklch, var(--color-bone) 20%, transparent), var(--color-blood), color-mix(in oklch, var(--color-bone) 20%, transparent), transparent);
+    position: relative;
+  }
+
+  .gothic-divider::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    transform: translate(-50%, -50%) rotate(45deg);
+    background: var(--color-blood);
+    box-shadow: 0 0 14px color-mix(in oklch, var(--color-blood) 40%, transparent);
+  }
+
+  @keyframes dice-panel-enter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes dice-sweep {
+    0%, 76%, 100% {
+      transform: translateX(-45%);
+      opacity: 0.08;
+    }
+    86% {
+      transform: translateX(45%);
+      opacity: 0.2;
+    }
+  }
+
+  @keyframes dice-alert-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-blood) 22%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 5px color-mix(in oklch, var(--color-blood) 5%, transparent);
+    }
+  }
+
+  @keyframes dice-select-pop {
+    from {
+      transform: scale(0.98);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes dice-waiting {
+    0%, 100% {
+      opacity: 0.55;
+      transform: rotate(-2deg);
+    }
+    50% {
+      opacity: 1;
+      transform: rotate(2deg);
+    }
+  }
+
+  @keyframes dice-face-roll {
+    0% {
+      opacity: 0;
+      transform: translateY(-8px) rotate(-18deg) scale(0.85);
+    }
+    55% {
+      transform: translateY(2px) rotate(8deg) scale(1.06);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) rotate(0deg) scale(1);
+    }
+  }
+}
