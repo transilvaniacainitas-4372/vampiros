@@ -200,10 +200,40 @@ export async function localCreateCharacter(input: {
 export async function localListPlayers() {
   return getLocalUsers().map((user) => ({
     id: user.id,
+    email: user.email,
     display_name: user.display_name,
     role: user.role,
     status: user.status ?? "pending",
   }));
+}
+
+export async function localUpdatePlayer(input: { id: string; displayName: string; email: string }) {
+  const users = getLocalUsers();
+  const user = users.find((item) => item.id === input.id);
+  if (!user) throw new Error("Jogador local nao encontrado.");
+
+  const emailOwner = users.find(
+    (item) => item.id !== input.id && item.email.toLowerCase() === input.email.toLowerCase(),
+  );
+  if (emailOwner) throw new Error("Este e-mail ja esta em uso.");
+
+  user.display_name = input.displayName.trim() || user.display_name;
+  user.email = input.email.trim() || user.email;
+  setLocalUsers(users);
+  return { ok: true };
+}
+
+export async function localDeletePlayer(input: { id: string }) {
+  const session = getLocalSession();
+  if (session?.id === input.id) throw new Error("O mestre nao pode apagar a propria conta em uso.");
+
+  setLocalUsers(getLocalUsers().filter((user) => user.id !== input.id));
+  setLocalCharacters(
+    getLocalCharacters().map((character) =>
+      character.owner_id === input.id ? { ...character, owner_id: null, updated_at: new Date().toISOString() } : character,
+    ),
+  );
+  return { ok: true };
 }
 
 function updateLocalCharacter(idValue: string, updates: Partial<LocalCharacter>) {

@@ -8,10 +8,12 @@ import {
   localAssignPlayer,
   localCreateCharacter,
   localDeleteCharacter,
+  localDeletePlayer,
   localListPlayers,
   localRejectDraft,
   localSaveDraft,
   localSubmitForApproval,
+  localUpdatePlayer,
 } from "./local-data";
 
 async function assertStoryteller(supabase: any, userId: string) {
@@ -133,6 +135,11 @@ const listPlayersRemote = createServerFn({ method: "GET" })
       .from("profiles").select("id, display_name").order("display_name");
     if (error) throw new Error(error.message);
     const profiles = data ?? [];
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers();
+    if (authError) throw new Error(authError.message);
+    const usersById = new Map((authUsers.users ?? []).map((user) => [user.id, user]));
+
     return Promise.all(
       profiles.map(async (profile) => {
         const { data: isStoryteller } = await context.supabase.rpc("has_role", {
@@ -142,11 +149,58 @@ const listPlayersRemote = createServerFn({ method: "GET" })
 
         return {
           ...profile,
+          email: usersById.get(profile.id)?.email ?? "",
           role: isStoryteller ? "storyteller" : "player",
           status: "active",
         };
       }),
     );
+  });
+
+const updatePlayerRemote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string; displayName: string; email: string }) =>
+    z.object({
+      id: z.string().uuid(),
+      displayName: z.string().trim().min(1).max(80),
+      email: z.string().trim().email().max(254),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStoryteller(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .update({ display_name: data.displayName })
+      .eq("id", data.id);
+    if (profileError) throw new Error(profileError.message);
+
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(data.id, {
+      email: data.email,
+      email_confirm: true,
+      user_metadata: { display_name: data.displayName },
+    });
+    if (authError) throw new Error(authError.message);
+    return { ok: true };
+  });
+
+const deletePlayerRemote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertStoryteller(context.supabase, context.userId);
+    if (data.id === context.userId) throw new Error("O mestre nao pode apagar a propria conta em uso.");
+
+    const { error: characterError } = await context.supabase
+      .from("characters")
+      .update({ owner_id: null })
+      .eq("owner_id", data.id);
+    if (characterError) throw new Error(characterError.message);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export const createCharacter = isLocalMode
@@ -179,3 +233,11 @@ export const deleteCharacter = isLocalMode
   : deleteCharacterRemote;
 
 export const listPlayers = isLocalMode ? async () => localListPlayers() : listPlayersRemote;
+
+export const updatePlayer = isLocalMode
+  ? async ({ data }: { data: { id: string; displayName: string; email: string } }) => localUpdatePlayer(data)
+  : updatePlayerRemote;
+
+export const deletePlayer = isLocalMode
+  ? async ({ data }: { data: { id: string } }) => localDeletePlayer(data)
+  : deletePlayerRemote;

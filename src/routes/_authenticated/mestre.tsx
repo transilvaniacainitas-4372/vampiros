@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Check, Dice5, Minus, Play, Plus, ScrollText, UserRound, X } from "lucide-react";
 import {
-  createCharacter, approveDraft, rejectDraft, assignPlayer, deleteCharacter, listPlayers,
+  createCharacter, approveDraft, rejectDraft, assignPlayer, deleteCharacter, listPlayers, updatePlayer, deletePlayer,
 } from "@/lib/characters.functions";
 import { CharacterSheetView } from "@/components/CharacterSheetView";
 import { sheetSchema } from "@/lib/character-schema";
@@ -19,7 +19,7 @@ type Row = {
   owner_id: string | null; review_note: string | null;
   sheet_draft: unknown; sheet_approved: unknown; portrait_url: string | null;
 };
-type Player = { id: string; display_name: string | null; role?: "player" | "storyteller"; status?: string };
+type Player = { id: string; email?: string | null; display_name: string | null; role?: "player" | "storyteller"; status?: string };
 
 export const Route = createFileRoute("/_authenticated/mestre")({
   head: () => ({ meta: [{ title: "Painel do Mestre — Transylvania Chronicles" }] }),
@@ -30,8 +30,12 @@ function MasterPanel() {
   const settings = useGameSettings();
   const diceTable = useDiceTable();
   const [isMaster, setIsMaster] = useState<boolean | null>(null);
+  const [currentUserId, setCurrentUserId] = useState("");
   const [chars, setChars] = useState<Row[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
+  const [editingPlayerName, setEditingPlayerName] = useState("");
+  const [editingPlayerEmail, setEditingPlayerEmail] = useState("");
   const [tab, setTab] = useState<"pending" | "all">("pending");
   const [section, setSection] = useState<"characters" | "players" | "settings" | "dice">("characters");
   const [preview, setPreview] = useState<Row | null>(null);
@@ -44,6 +48,7 @@ function MasterPanel() {
   const load = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+    setCurrentUserId(user.id);
     const { data: st } = await supabase.rpc("has_role", { _user_id: user.id, _role: "storyteller" });
     setIsMaster(!!st);
     if (!st) return;
@@ -93,6 +98,38 @@ function MasterPanel() {
     if (!confirm("Deletar este personagem?")) return;
     try { await deleteCharacter({ data: { id } }); toast.success("Deletado."); await load(); }
     catch (e: any) { toast.error(e.message); }
+  };
+  const startEditPlayer = (player: Player) => {
+    setEditingPlayerId(player.id);
+    setEditingPlayerName(player.display_name ?? "");
+    setEditingPlayerEmail(player.email ?? "");
+  };
+  const cancelEditPlayer = () => {
+    setEditingPlayerId(null);
+    setEditingPlayerName("");
+    setEditingPlayerEmail("");
+  };
+  const onSavePlayer = async () => {
+    if (!editingPlayerId) return;
+    try {
+      await updatePlayer({ data: { id: editingPlayerId, displayName: editingPlayerName, email: editingPlayerEmail } });
+      toast.success("Jogador atualizado.");
+      cancelEditPlayer();
+      await load();
+    } catch (e: any) { toast.error(e.message); }
+  };
+  const onDeletePlayer = async (player: Player) => {
+    if (player.id === currentUserId) {
+      toast.error("O mestre nao pode apagar a propria conta em uso.");
+      return;
+    }
+    if (!confirm(`Excluir o jogador ${player.display_name ?? player.email ?? player.id.slice(0, 8)}? Os personagens ficarao sem jogador associado.`)) return;
+    try {
+      await deletePlayer({ data: { id: player.id } });
+      toast.success("Jogador excluido.");
+      if (editingPlayerId === player.id) cancelEditPlayer();
+      await load();
+    } catch (e: any) { toast.error(e.message); }
   };
 
   const previewSheet = preview ? sheetSchema.safeParse(preview.sheet_draft) : null;
@@ -230,28 +267,50 @@ function MasterPanel() {
               <h2 className="font-display uppercase tracking-widest text-sm text-bone">Associação de contas</h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-sm">
+              <table className="w-full min-w-[920px] text-sm">
                 <thead className="bg-background/35 text-[10px] uppercase tracking-widest text-muted-foreground">
                   <tr className="border-b border-border/60">
                     <th className="px-4 py-3 text-left font-normal">Jogador</th>
                     <th className="px-4 py-3 text-left font-normal">Status</th>
                     <th className="px-4 py-3 text-left font-normal">Personagem associado</th>
                     <th className="px-4 py-3 text-left font-normal">Atribuir personagem</th>
+                    <th className="px-4 py-3 text-right font-normal">Acoes</th>
                   </tr>
                 </thead>
                 <tbody>
                   {players.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">Nenhum jogador cadastrado.</td>
+                      <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Nenhum jogador cadastrado.</td>
                     </tr>
                   )}
                   {players.map((player) => {
                     const assigned = chars.find((character) => character.owner_id === player.id);
+                    const isEditing = editingPlayerId === player.id;
                     return (
                       <tr key={player.id} className="border-b border-border/50 last:border-0">
                         <td className="px-4 py-3">
-                          <div className="font-display uppercase tracking-widest text-bone">{player.display_name ?? "Sem nome"}</div>
-                          <div className="text-xs text-muted-foreground mt-1">{player.id.slice(0, 8)}</div>
+                          {isEditing ? (
+                            <div className="space-y-2">
+                              <Input
+                                value={editingPlayerName}
+                                onChange={(event) => setEditingPlayerName(event.target.value)}
+                                maxLength={80}
+                                placeholder="Nome do jogador"
+                              />
+                              <Input
+                                type="email"
+                                value={editingPlayerEmail}
+                                onChange={(event) => setEditingPlayerEmail(event.target.value)}
+                                maxLength={254}
+                                placeholder="email@dominio.com"
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              <div className="font-display uppercase tracking-widest text-bone">{player.display_name ?? "Sem nome"}</div>
+                              <div className="text-xs text-muted-foreground mt-1">{player.email || player.id.slice(0, 8)}</div>
+                            </>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-1 text-[10px] uppercase tracking-widest border rounded-sm ${
@@ -274,6 +333,28 @@ function MasterPanel() {
                             <option value="">Sem personagem</option>
                             {chars.map((character)=><option key={character.id} value={character.id}>{character.name}</option>)}
                           </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end gap-2">
+                            {isEditing ? (
+                              <>
+                                <Button variant="outline" size="sm" onClick={cancelEditPlayer}>Cancelar</Button>
+                                <Button size="sm" onClick={onSavePlayer}>Salvar</Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button variant="outline" size="sm" onClick={() => startEditPlayer(player)}>Editar</Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={player.id === currentUserId}
+                                  onClick={() => onDeletePlayer(player)}
+                                >
+                                  Excluir
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
