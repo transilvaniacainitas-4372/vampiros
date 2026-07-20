@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Check, Clock, Dice5 } from "lucide-react";
+import { Check, Clock, Dice5, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { TableChat } from "@/components/TableChat";
 import { supabase } from "@/integrations/supabase/client";
-import { rollDice, useDiceTable, type DiceResult } from "@/lib/dice-table";
+import { closeDiceRequest, rollDice, useDiceTable, type DiceResult } from "@/lib/dice-table";
+import { getLocalCharacters, getLocalSession } from "@/lib/local-data";
+import { isLocalMode } from "@/lib/local-mode";
 
 type CharacterRow = {
   id: string;
@@ -20,13 +22,24 @@ export const Route = createFileRoute("/_authenticated/mesa")({
 function DiceTablePage() {
   const diceTable = useDiceTable();
   const [myCharacters, setMyCharacters] = useState<CharacterRow[]>([]);
+  const [isMaster, setIsMaster] = useState(false);
   const [diceCount, setDiceCount] = useState(5);
   const [sides, setSides] = useState(10);
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (isLocalMode) {
+      const user = getLocalSession();
+      if (!user) return;
+      setIsMaster(user.role === "storyteller");
+      setMyCharacters(getLocalCharacters().filter((character) => character.owner_id === user.id));
+      return;
+    }
+
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
+      const { data: storyteller } = await supabase.rpc("has_role", { _user_id: data.user.id, _role: "storyteller" });
+      setIsMaster(!!storyteller);
       const { data: characters } = await supabase.from("characters").select("id, name").eq("owner_id", data.user.id);
       setMyCharacters((characters ?? []) as CharacterRow[]);
     });
@@ -52,6 +65,11 @@ function DiceTablePage() {
     } catch (error: any) {
       toast.error(error.message);
     }
+  };
+
+  const onCloseTable = (requestId: string) => {
+    closeDiceRequest(requestId);
+    toast.success("Mesa fechada e enviada ao histórico.");
   };
 
   return (
@@ -121,8 +139,21 @@ function DiceTablePage() {
                             <h3 className="font-display uppercase tracking-widest text-xl text-bone mt-1">{request.title}</h3>
                             {request.note && <p className="text-sm text-bone/70 mt-2">{request.note}</p>}
                           </div>
-                          <div className="border border-bone/15 bg-background/35 px-3 py-2 rounded-sm text-sm text-bone">
-                            {completed}/{request.targets.length} rolaram
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="border border-bone/15 bg-background/35 px-3 py-2 rounded-sm text-sm text-bone">
+                              {completed}/{request.targets.length} rolaram
+                            </div>
+                            {isMaster && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="dice-button-effect font-display uppercase tracking-widest"
+                                onClick={() => onCloseTable(request.id)}
+                              >
+                                <X className="size-4 mr-2" />
+                                Fechar mesa
+                              </Button>
+                            )}
                           </div>
                         </div>
 
