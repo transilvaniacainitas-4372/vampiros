@@ -95,6 +95,7 @@ export function CharacterSheetEditor({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <SquareLine label="Força de Vontade" max={20} value={value.state.willpowerSuperficial ?? 0} onChange={(v) => setState({ willpowerSuperficial: v, willpowerMax: 20 })} />
           <SquareLine label="Pontos de Sangue" max={40} value={value.state.bloodPoints ?? 0} onChange={(v) => setState({ bloodPoints: v })} />
+          <Text label="Nome do Caminho" value={value.state.pathName ?? ""} onChange={(v) => setState({ pathName: v })} />
           <RatingLine label="Caminho" max={10} value={value.state.humanity} onChange={(v) => setState({ humanity: v })} />
           <Number label="Vitalidade máx" value={value.state.healthMax} min={1} max={15} onChange={(v) => setState({ healthMax: v })} />
           <Number label="Vit. superficial" value={value.state.healthSuperficial} min={0} max={15} onChange={(v) => setState({ healthSuperficial: v })} />

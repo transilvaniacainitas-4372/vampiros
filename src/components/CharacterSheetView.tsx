@@ -81,7 +81,11 @@ export function CharacterSheetView({ sheet }: { sheet: Sheet }) {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
           <div><Label>Força de Vontade</Label><SquareTrack value={sheet.state.willpowerSuperficial ?? 0} max={20} columns={10} /></div>
           <div><Label>Pontos de Sangue</Label><SquareTrack value={sheet.state.bloodPoints ?? 0} max={40} columns={10} /></div>
-          <div><Label>Caminho</Label><DotRating value={sheet.state.humanity} max={10} /></div>
+          <div>
+            <Label>Caminho</Label>
+            <div className="text-sm mb-1">{sheet.state.pathName || "—"}</div>
+            <DotRating value={sheet.state.humanity} max={10} />
+          </div>
           <div><Label>Vitalidade</Label><div className="text-xs">{sheet.state.healthMax} máx · {sheet.state.healthSuperficial}s / {sheet.state.healthAggravated}a</div></div>
           <div><Label>Fraqueza</Label><div>{sheet.state.resonance || "—"}</div></div>
           <div><Label>Experiência</Label><div>{sheet.state.experienceTotal} total · {sheet.state.experienceSpent} gasto</div></div>

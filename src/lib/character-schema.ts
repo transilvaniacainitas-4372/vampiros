@@ -57,6 +57,7 @@ export const sheetSchema = z.object({
   advantages: z.array(ratedItem).max(30).default([]),
   flaws: z.array(ratedItem).max(30).default([]),
   state: z.object({
+    pathName: z.string().max(120).default(""),
     humanity: rating10.default(7),
     stains: rating10.default(0),
     hunger: z.number().int().min(0).max(5).default(1),
