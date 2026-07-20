@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useDiceTable } from "@/lib/dice-table";
 
 type Character = {
   id: string;
@@ -25,10 +26,12 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const diceTable = useDiceTable();
   const [chars, setChars] = useState<Character[]>([]);
   const [session, setSession] = useState<{ id: string; email: string } | null>(null);
   const [isStoryteller, setIsStoryteller] = useState(false);
   const [hasAssignedCharacter, setHasAssignedCharacter] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [flippedId, setFlippedId] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -51,8 +54,16 @@ function Home() {
         const { data: mine } = await supabase.from("characters").select("id").eq("owner_id", data.user.id);
         setHasAssignedCharacter(!!mine?.length);
       }
+      setAuthChecked(true);
     });
   }, []);
+
+  useEffect(() => {
+    const hasActiveTable = diceTable.requests.some((request) => request.active);
+    if (authChecked && session && hasActiveTable && (hasAssignedCharacter || isStoryteller)) {
+      navigate({ to: "/mesa" });
+    }
+  }, [authChecked, session, hasAssignedCharacter, isStoryteller, diceTable.requests, navigate]);
 
   return (
     <div className="gothic-vault-bg min-h-screen">
