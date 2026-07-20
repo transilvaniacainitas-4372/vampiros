@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const rating = z.number().int().min(0).max(10);
 const rating10 = z.number().int().min(0).max(10);
+const rating20 = z.number().int().min(0).max(20);
+const rating40 = z.number().int().min(0).max(40);
 
 export const V5_CLANS = [
   "Brujah", "Gangrel", "Malkavian", "Nosferatu", "Toreador", "Tremere", "Ventrue",
@@ -58,12 +60,16 @@ export const sheetSchema = z.object({
     humanity: rating10.default(7),
     stains: rating10.default(0),
     hunger: z.number().int().min(0).max(5).default(1),
+    bloodPoints: rating40.default(0),
+    virtueConscience: rating10.default(0),
+    virtueSelfControl: rating10.default(0),
+    virtueCourage: rating10.default(0),
     healthMax: z.number().int().min(1).max(15).default(5),
     healthSuperficial: z.number().int().min(0).max(15).default(0),
     healthAggravated: z.number().int().min(0).max(15).default(0),
-    willpowerMax: z.number().int().min(1).max(15).default(5),
-    willpowerSuperficial: z.number().int().min(0).max(15).default(0),
-    willpowerAggravated: z.number().int().min(0).max(15).default(0),
+    willpowerMax: z.number().int().min(1).max(20).default(20),
+    willpowerSuperficial: rating20.default(0),
+    willpowerAggravated: rating20.default(0),
     resonance: z.string().max(80).default(""),
     experienceTotal: z.number().int().min(0).max(9999).default(0),
     experienceSpent: z.number().int().min(0).max(9999).default(0),

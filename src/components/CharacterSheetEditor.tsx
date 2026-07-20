@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DotRating } from "./DotRating";
+import { SquareTrack } from "./SquareTrack";
 import { ATTRIBUTES, V5_PREDATOR_TYPES, type Sheet } from "@/lib/character-schema";
 import { useGameSettings } from "@/lib/game-settings";
 import { Input } from "@/components/ui/input";
@@ -81,9 +82,9 @@ export function CharacterSheetEditor({
           <div className="space-y-6">
             <div>
               <SubTitle>Virtudes</SubTitle>
-              <RatingLine label="Consciência/Convicção" max={settings.skillMax} value={value.state.humanity} onChange={(v) => setState({ humanity: v })} />
-              <RatingLine label="Autocontrole/Instinto" max={settings.skillMax} value={value.state.stains} onChange={(v) => setState({ stains: v })} />
-              <RatingLine label="Coragem" max={settings.skillMax} value={value.state.hunger} onChange={(v) => setState({ hunger: v })} />
+              <RatingLine label="Consciência/Convicção" max={settings.skillMax} value={value.state.virtueConscience ?? 0} onChange={(v) => setState({ virtueConscience: v })} />
+              <RatingLine label="Autocontrole/Instinto" max={settings.skillMax} value={value.state.virtueSelfControl ?? 0} onChange={(v) => setState({ virtueSelfControl: v })} />
+              <RatingLine label="Coragem" max={settings.skillMax} value={value.state.virtueCourage ?? 0} onChange={(v) => setState({ virtueCourage: v })} />
             </div>
             <ItemsBlock title="Qualidades/Defeitos" items={value.flaws} onChange={(v) => set("flaws", v)} />
           </div>
@@ -92,14 +93,14 @@ export function CharacterSheetEditor({
 
       <Section title="Estado">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <RatingLine label="Força de Vontade" max={value.state.willpowerMax} value={value.state.willpowerSuperficial} onChange={(v) => setState({ willpowerSuperficial: v })} />
-          <RatingLine label="Pontos de Sangue" max={10} value={value.state.stains} onChange={(v) => setState({ stains: v })} />
+          <SquareLine label="Força de Vontade" max={20} value={value.state.willpowerSuperficial ?? 0} onChange={(v) => setState({ willpowerSuperficial: v, willpowerMax: 20 })} />
+          <SquareLine label="Pontos de Sangue" max={40} value={value.state.bloodPoints ?? 0} onChange={(v) => setState({ bloodPoints: v })} />
           <RatingLine label="Caminho" max={10} value={value.state.humanity} onChange={(v) => setState({ humanity: v })} />
           <Number label="Vitalidade máx" value={value.state.healthMax} min={1} max={15} onChange={(v) => setState({ healthMax: v })} />
           <Number label="Vit. superficial" value={value.state.healthSuperficial} min={0} max={15} onChange={(v) => setState({ healthSuperficial: v })} />
           <Number label="Vit. agravada" value={value.state.healthAggravated} min={0} max={15} onChange={(v) => setState({ healthAggravated: v })} />
-          <Number label="FV máx" value={value.state.willpowerMax} min={1} max={15} onChange={(v) => setState({ willpowerMax: v })} />
-          <Number label="FV agravada" value={value.state.willpowerAggravated} min={0} max={15} onChange={(v) => setState({ willpowerAggravated: v })} />
+          <Number label="FV máx" value={value.state.willpowerMax} min={1} max={20} onChange={(v) => setState({ willpowerMax: v })} />
+          <Number label="FV agravada" value={value.state.willpowerAggravated} min={0} max={20} onChange={(v) => setState({ willpowerAggravated: v })} />
           <Text label="Fraqueza" value={value.state.resonance} onChange={(v) => setState({ resonance: v })} />
           <Number label="XP total" value={value.state.experienceTotal} min={0} max={9999} onChange={(v) => setState({ experienceTotal: v })} />
           <Number label="XP gasto" value={value.state.experienceSpent} min={0} max={9999} onChange={(v) => setState({ experienceSpent: v })} />
@@ -230,6 +231,15 @@ function RatingLine({ label, max, value, onChange }: { label: string; max?: numb
     <div>
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{label}</div>
       <DotRating value={value} max={max} onChange={onChange} />
+    </div>
+  );
+}
+
+function SquareLine({ label, max, value, onChange }: { label: string; max: number; value: number; onChange: (v: number) => void }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{label}</div>
+      <SquareTrack value={value} max={max} onChange={onChange} columns={10} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { DotRating } from "./DotRating";
+import { SquareTrack } from "./SquareTrack";
 import { ATTRIBUTES, type Sheet } from "@/lib/character-schema";
 import { useGameSettings } from "@/lib/game-settings";
 
@@ -63,9 +64,9 @@ export function CharacterSheetView({ sheet }: { sheet: Sheet }) {
           <div className="space-y-6">
             <div>
               <SubTitle>Virtudes</SubTitle>
-              <RatingRow name="Consciência/Convicção" value={sheet.state.humanity} max={settings.skillMax} />
-              <RatingRow name="Autocontrole/Instinto" value={sheet.state.stains} max={settings.skillMax} />
-              <RatingRow name="Coragem" value={sheet.state.hunger} max={settings.skillMax} />
+              <RatingRow name="Consciência/Convicção" value={sheet.state.virtueConscience ?? 0} max={settings.skillMax} />
+              <RatingRow name="Autocontrole/Instinto" value={sheet.state.virtueSelfControl ?? 0} max={settings.skillMax} />
+              <RatingRow name="Coragem" value={sheet.state.virtueCourage ?? 0} max={settings.skillMax} />
             </div>
             <div>
               <SubTitle>Qualidades/Defeitos</SubTitle>
@@ -78,8 +79,8 @@ export function CharacterSheetView({ sheet }: { sheet: Sheet }) {
       <section>
         <SectionTitle>Estado</SectionTitle>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-          <div><Label>Força de Vontade</Label><div className="text-xs">{sheet.state.willpowerMax} máx · {sheet.state.willpowerSuperficial}s / {sheet.state.willpowerAggravated}a</div></div>
-          <div><Label>Pontos de Sangue</Label><DotRating value={sheet.state.stains} max={10} /></div>
+          <div><Label>Força de Vontade</Label><SquareTrack value={sheet.state.willpowerSuperficial ?? 0} max={20} columns={10} /></div>
+          <div><Label>Pontos de Sangue</Label><SquareTrack value={sheet.state.bloodPoints ?? 0} max={40} columns={10} /></div>
           <div><Label>Caminho</Label><DotRating value={sheet.state.humanity} max={10} /></div>
           <div><Label>Vitalidade</Label><div className="text-xs">{sheet.state.healthMax} máx · {sheet.state.healthSuperficial}s / {sheet.state.healthAggravated}a</div></div>
           <div><Label>Fraqueza</Label><div>{sheet.state.resonance || "—"}</div></div>
