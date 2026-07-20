@@ -10,15 +10,15 @@ export function CharacterSheetView({ sheet }: { sheet: Sheet }) {
         <SectionTitle>Identidade</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
           <Field label="Nome" value={sheet.identity.name} />
+          <Field label="Natureza" value={sheet.identity.nature} />
+          <Field label="Geração" value={String(sheet.identity.generation)} />
+          <Field label="Jogador" value={sheet.identity.trueName} />
+          <Field label="Comportamento" value={sheet.identity.demeanor} />
           <Field label="Conceito" value={sheet.identity.concept} />
           <Field label="Clã" value={sheet.identity.clan} />
           <Field label="Predador" value={sheet.identity.predator} />
-          <Field label="Natureza" value={sheet.identity.nature} />
-          <Field label="Comportamento" value={sheet.identity.demeanor} />
-          <Field label="Geração" value={String(sheet.identity.generation)} />
           <Field label="Senhor" value={sheet.identity.sire} />
           <Field label="Crônica" value={sheet.identity.chronicle} />
-          <Field label="Nome verdadeiro" value={sheet.identity.trueName} />
         </div>
       </section>
 
