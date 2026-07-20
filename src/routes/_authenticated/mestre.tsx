@@ -22,7 +22,7 @@ type Row = {
 type Player = { id: string; email?: string | null; display_name: string | null; role?: "player" | "storyteller"; status?: string };
 
 export const Route = createFileRoute("/_authenticated/mestre")({
-  head: () => ({ meta: [{ title: "Painel do Mestre â€” Transylvania Chronicles" }] }),
+  head: () => ({ meta: [{ title: "Painel do Mestre — Transylvania Chronicles" }] }),
   component: MasterPanel,
 });
 
@@ -65,8 +65,8 @@ function MasterPanel() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
         <h1 className="font-display text-blood text-2xl uppercase tracking-widest">Acesso negado</h1>
-        <p className="text-muted-foreground text-sm mt-2">Apenas o mestre da crÃ´nica pode acessar este salÃ£o.</p>
-        <Link to="/" className="text-sm text-muted-foreground hover:text-blood mt-4 inline-block">â† Voltar</Link>
+        <p className="text-muted-foreground text-sm mt-2">Apenas o mestre da crônica pode acessar este salão.</p>
+        <Link to="/" className="text-sm text-muted-foreground hover:text-blood mt-4 inline-block">← Voltar</Link>
       </div>
     </div>
   );
@@ -91,7 +91,7 @@ function MasterPanel() {
     catch (e: any) { toast.error(e.message); }
   };
   const onAssign = async (id: string, ownerId: string | null) => {
-    try { await assignPlayer({ data: { id, ownerId } }); toast.success("Jogador atribuÃ­do."); await load(); }
+    try { await assignPlayer({ data: { id, ownerId } }); toast.success("Jogador atribuído."); await load(); }
     catch (e: any) { toast.error(e.message); }
   };
   const onDelete = async (id: string) => {
@@ -149,7 +149,7 @@ function MasterPanel() {
       <main className="max-w-6xl mx-auto px-6 py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-blood">AdministraÃ§Ã£o</p>
+            <p className="text-[10px] uppercase tracking-widest text-blood">Administração</p>
             <h1 className="gothic-hero-title font-display uppercase tracking-widest text-2xl text-bone">Painel do Mestre</h1>
           </div>
           <div className="grid grid-cols-2 sm:flex gap-2">
@@ -174,13 +174,13 @@ function MasterPanel() {
                   <Input value={newName} onChange={(e)=>setNewName(e.target.value)} maxLength={80} />
                 </label>
                 <label className="block">
-                  <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">ClÃ£</span>
+                  <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Clã</span>
                   <select
                     className="w-full bg-input border border-border rounded-sm px-3 py-2 text-sm text-foreground"
                     value={newClan}
                     onChange={(e)=>setNewClan(e.target.value)}
                   >
-                    <option value="">Selecione o clÃ£</option>
+                    <option value="">Selecione o clã</option>
                     {settings.clans.map((clan) => (
                       <option key={clan} value={clan}>{clan}</option>
                     ))}
@@ -217,10 +217,10 @@ function MasterPanel() {
                   <thead className="bg-background/35 text-[10px] uppercase tracking-widest text-muted-foreground">
                     <tr className="border-b border-border/60">
                       <th className="px-4 py-3 text-left font-normal">Nome</th>
-                      <th className="px-4 py-3 text-left font-normal">ClÃ£</th>
+                      <th className="px-4 py-3 text-left font-normal">Clã</th>
                       <th className="px-4 py-3 text-left font-normal">Status</th>
                       <th className="px-4 py-3 text-left font-normal">Jogador</th>
-                      <th className="px-4 py-3 text-right font-normal">AÃ§Ãµes</th>
+                      <th className="px-4 py-3 text-right font-normal">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -264,7 +264,7 @@ function MasterPanel() {
           <section className="gothic-panel border border-border/60 bg-card/40 rounded-sm overflow-hidden">
             <div className="border-b border-border/60 p-4">
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Jogadores</p>
-              <h2 className="font-display uppercase tracking-widest text-sm text-bone">AssociaÃ§Ã£o de contas</h2>
+              <h2 className="font-display uppercase tracking-widest text-sm text-bone">Associação de contas</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[920px] text-sm">
@@ -274,7 +274,7 @@ function MasterPanel() {
                     <th className="px-4 py-3 text-left font-normal">Status</th>
                     <th className="px-4 py-3 text-left font-normal">Personagem associado</th>
                     <th className="px-4 py-3 text-left font-normal">Atribuir personagem</th>
-                    <th className="px-4 py-3 text-right font-normal">Acoes</th>
+                    <th className="px-4 py-3 text-right font-normal">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -375,12 +375,12 @@ function MasterPanel() {
           <div className="max-w-5xl mx-auto my-10 p-6 border border-border bg-card rounded-sm" onClick={(e)=>e.stopPropagation()}>
             <div className="flex justify-between items-start mb-4">
               <h2 className="font-display uppercase tracking-widest text-xl text-bone">Revisar rascunho: {preview.name}</h2>
-              <button onClick={()=>setPreview(null)} className="text-muted-foreground hover:text-blood">Ã—</button>
+              <button onClick={()=>setPreview(null)} className="text-muted-foreground hover:text-blood">×</button>
             </div>
             <hr className="blood-rule mb-6" />
-            {previewSheet?.success ? <CharacterSheetView sheet={previewSheet.data} /> : <p className="text-muted-foreground text-sm">Sem rascunho vÃ¡lido.</p>}
+            {previewSheet?.success ? <CharacterSheetView sheet={previewSheet.data} /> : <p className="text-muted-foreground text-sm">Sem rascunho válido.</p>}
             <div className="sticky bottom-0 bg-card border-t border-border pt-4 mt-6">
-              <Textarea placeholder="Nota (obrigatÃ³ria para rejeitar)" value={reviewNote} onChange={(e)=>setReviewNote(e.target.value)} maxLength={1000} className="mb-3" />
+              <Textarea placeholder="Nota (obrigatória para rejeitar)" value={reviewNote} onChange={(e)=>setReviewNote(e.target.value)} maxLength={1000} className="mb-3" />
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={()=>onReject(preview.id)} disabled={!reviewNote.trim()}>Rejeitar</Button>
                 <Button onClick={()=>onApprove(preview.id)} className="font-display uppercase tracking-widest">Aprovar</Button>
@@ -528,7 +528,7 @@ function DiceTablePanel({
             <div className="font-display uppercase tracking-widest text-sm text-bone mb-3">Rolagem do mestre</div>
             <DiceStepper label="Dados" value={masterDiceCount} min={1} max={50} onChange={setMasterDiceCount} />
             <DiceStepper label="Lados" value={masterSides} min={2} max={100} onChange={setMasterSides} />
-            <p className="text-xs text-muted-foreground">Essa fÃ³rmula serÃ¡ usada quando clicar em Mestre em uma mesa ativa.</p>
+            <p className="text-xs text-muted-foreground">Essa fórmula será usada quando clicar em Mestre em uma mesa ativa.</p>
           </div>
         </div>
 
@@ -735,7 +735,7 @@ function SettingsPanel({ settings }: { settings: GameSettings }) {
   const updateSkills = (key: keyof GameSettings["skills"], value: string[]) =>
     saveGameSettings({ ...settings, skills: { ...settings.skills, [key]: value } });
   const restoreAll = () => {
-    if (!confirm("Restaurar todos os cadastros padrÃµes da crÃ´nica?")) return;
+    if (!confirm("Restaurar todos os cadastros padrões da crônica?")) return;
     saveGameSettings(DEFAULT_GAME_SETTINGS);
   };
 
@@ -744,23 +744,23 @@ function SettingsPanel({ settings }: { settings: GameSettings }) {
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Cadastros auxiliares</p>
-          <h2 className="font-display uppercase tracking-widest text-sm text-blood">ConfiguraÃ§Ãµes da CrÃ´nica</h2>
+          <h2 className="font-display uppercase tracking-widest text-sm text-blood">Configurações da Crônica</h2>
         </div>
-        <Button variant="outline" size="sm" onClick={restoreAll}>Restaurar todos os padrÃµes</Button>
+        <Button variant="outline" size="sm" onClick={restoreAll}>Restaurar todos os padrões</Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ListConfig label="ClÃ£s" value={settings.clans} defaultValue={DEFAULT_GAME_SETTINGS.clans} onChange={(v) => update({ clans: v })} />
+        <ListConfig label="Clãs" value={settings.clans} defaultValue={DEFAULT_GAME_SETTINGS.clans} onChange={(v) => update({ clans: v })} />
         <ListConfig label="Naturezas" value={settings.natures} defaultValue={DEFAULT_GAME_SETTINGS.natures} onChange={(v) => update({ natures: v })} />
         <ListConfig label="Comportamentos" value={settings.demeanors} defaultValue={DEFAULT_GAME_SETTINGS.demeanors} onChange={(v) => update({ demeanors: v })} />
-        <ListConfig label="RefÃºgios" value={settings.havens} defaultValue={DEFAULT_GAME_SETTINGS.havens} onChange={(v) => update({ havens: v })} />
-        <ListConfig label="CrÃ´nicas" value={settings.chronicles} defaultValue={DEFAULT_GAME_SETTINGS.chronicles} onChange={(v) => update({ chronicles: v })} />
+        <ListConfig label="Refúgios" value={settings.havens} defaultValue={DEFAULT_GAME_SETTINGS.havens} onChange={(v) => update({ havens: v })} />
+        <ListConfig label="Crônicas" value={settings.chronicles} defaultValue={DEFAULT_GAME_SETTINGS.chronicles} onChange={(v) => update({ chronicles: v })} />
         <ListConfig label="Conceitos" value={settings.concepts} defaultValue={DEFAULT_GAME_SETTINGS.concepts} onChange={(v) => update({ concepts: v })} />
         <ListConfig label="Talentos" value={settings.skills.talentos} defaultValue={DEFAULT_GAME_SETTINGS.skills.talentos} onChange={(v) => updateSkills("talentos", v)} />
         <ListConfig label="Perícias" value={settings.skills.pericias} defaultValue={DEFAULT_GAME_SETTINGS.skills.pericias} onChange={(v) => updateSkills("pericias", v)} />
         <ListConfig label="Conhecimentos" value={settings.skills.conhecimentos} defaultValue={DEFAULT_GAME_SETTINGS.skills.conhecimentos} onChange={(v) => updateSkills("conhecimentos", v)} />
         <ListConfig label="Estados" value={settings.states} defaultValue={DEFAULT_GAME_SETTINGS.states} onChange={(v) => update({ states: v })} />
         <label className="block">
-          <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">NÃ­vel mÃ¡ximo de atributos e habilidades</span>
+          <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Nível máximo de atributos e habilidades</span>
           <Input
             type="number"
             min={1}
@@ -806,14 +806,14 @@ function ListConfig({
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <div className="block text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
-          <div className="text-xs text-bone/70">{value.length} item{value.length === 1 ? "" : "s"}</div>
+          <div className="text-xs text-bone/70">{value.length} {value.length === 1 ? "item" : "itens"}</div>
         </div>
         <div className="flex gap-2">
           <button type="button" className="text-xs text-muted-foreground hover:text-blood" onClick={() => onChange([])}>
             Limpar
           </button>
           <button type="button" className="text-xs text-muted-foreground hover:text-blood" onClick={() => onChange(defaultValue)}>
-            PadrÃ£o
+            Padrão
           </button>
         </div>
       </div>
@@ -833,9 +833,10 @@ function ListConfig({
                 type="button"
                 className="text-muted-foreground hover:text-blood"
                 aria-label={`Remover ${item}`}
+                title={`Remover ${item}`}
                 onClick={() => removeItem(item)}
               >
-                Ã—
+                <X className="size-3" aria-hidden="true" />
               </button>
             </span>
           ))}
@@ -878,4 +879,5 @@ function StatusBadge({ status }: { status: string }) {
   const s = map[status] ?? map.draft;
   return <span className={`px-2 py-1 text-[10px] uppercase tracking-widest border rounded-sm ${s.cls}`}>{s.label}</span>;
 }
+
 

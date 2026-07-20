@@ -150,8 +150,19 @@ function normalizeSkills(skills: Partial<GameSettings["skills"]> & {
 
 function cleanList(value: string[] | undefined, fallback: string[]) {
   if (value === undefined) return fallback;
-  const clean = (value ?? []).map((item) => item.trim()).filter(Boolean);
+  const clean = (value ?? []).map((item) => repairTextEncoding(item).trim()).filter(Boolean);
   return Array.from(new Set(clean));
+}
+
+function repairTextEncoding(value: string) {
+  if (!/[ÃÂ]/.test(value)) return value;
+  try {
+    const bytes = Uint8Array.from([...value].map((char) => char.charCodeAt(0) & 0xff));
+    const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    return /[ÃÂ]/.test(decoded) ? value : decoded;
+  } catch {
+    return value;
+  }
 }
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number) {
