@@ -24,8 +24,9 @@ function Auth() {
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
-          email, password,
-          options: { emailRedirectTo: window.location.origin, data: { display_name: name || email.split("@")[0] } },
+          email,
+          password,
+          options: { data: { display_name: name || email.split("@")[0] } },
         });
         if (error) throw error;
         toast.success("Conta criada. Aguarde o mestre associar você a um personagem.");
@@ -35,7 +36,12 @@ function Auth() {
       }
       navigate({ to: "/" });
     } catch (err: any) {
-      toast.error(err.message ?? "Erro ao autenticar");
+      const message = String(err.message ?? "");
+      toast.error(
+        message.toLowerCase().includes("email rate limit")
+          ? "O Supabase bloqueou novos e-mails por limite de envio. Desative a confirmação por e-mail no painel Auth."
+          : message || "Erro ao autenticar",
+      );
     } finally {
       setLoading(false);
     }
