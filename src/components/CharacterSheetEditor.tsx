@@ -86,7 +86,13 @@ export function CharacterSheetEditor({
             <div key={cat}>
               <SubTitle>{cat === "fisicos" ? "Físicos" : cat === "sociais" ? "Sociais" : "Mentais"}</SubTitle>
               {ATTRIBUTES[cat].map((n) => (
-                <RatingRow key={n} name={n} value={value.attributes[n] ?? 0} onChange={(v) => setAttr(n, v)} />
+                <RatingRow
+                  key={n}
+                  name={n}
+                  value={value.attributes[n] ?? 0}
+                  onChange={(v) => setAttr(n, v)}
+                  max={settings.skillMax}
+                />
               ))}
             </div>
           ))}
@@ -218,11 +224,21 @@ function Select({ label, value, options, onChange }: { label: string; value: str
   );
 }
 
-function RatingRow({ name, value, onChange }: { name: string; value: number; onChange: (v: number) => void }) {
+function RatingRow({
+  name,
+  value,
+  onChange,
+  max,
+}: {
+  name: string;
+  value: number;
+  onChange: (v: number) => void;
+  max: number;
+}) {
   return (
     <div className="flex justify-between items-center py-1 border-b border-border/30">
       <span className="text-sm">{name}</span>
-      <DotRating value={value} onChange={onChange} size="sm" />
+      <DotRating value={value} max={max} onChange={onChange} size="sm" />
     </div>
   );
 }

@@ -1,5 +1,7 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { ATTRIBUTES, SKILLS, V5_CLANS } from "./character-schema";
+import { isLocalMode } from "./local-mode";
 
 const SETTINGS_KEY = "vampiros.local.game-settings";
 
@@ -26,7 +28,7 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
   havens: ["Apartamento", "Mansão", "Boate", "Igreja abandonada", "Esgotos", "Refúgio compartilhado"],
   chronicles: ["Crônica local"],
   concepts: ["Ancilla político", "Neonato rebelde", "Predador social", "Investigador ocultista", "Executor da Camarilla"],
-  skillMax: 5,
+  skillMax: 8,
   skills: {
     fisicas: [...SKILLS.fisicas],
     sociais: [...SKILLS.sociais],
@@ -38,9 +40,12 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
 const listeners = new Set<() => void>();
 let cachedRaw: string | null | undefined;
 let cachedSettings: GameSettings = DEFAULT_GAME_SETTINGS;
+let remoteLoaded = false;
+let remoteLoading = false;
 
 export function getGameSettings(): GameSettings {
   if (typeof window === "undefined") return DEFAULT_GAME_SETTINGS;
+  if (!isLocalMode) return cachedSettings;
   const raw = window.localStorage.getItem(SETTINGS_KEY);
   if (raw === cachedRaw) return cachedSettings;
 
@@ -65,17 +70,54 @@ export function saveGameSettings(settings: GameSettings) {
   const raw = JSON.stringify(normalized);
   cachedRaw = raw;
   cachedSettings = normalized;
-  window.localStorage.setItem(SETTINGS_KEY, raw);
+  if (isLocalMode) {
+    window.localStorage.setItem(SETTINGS_KEY, raw);
+  } else {
+    void supabase
+      .from("game_settings")
+      .upsert({ id: "default", settings: normalized }, { onConflict: "id" })
+      .then(({ error }) => {
+        if (error) {
+          console.error("[GameSettings] Failed to save settings:", error.message);
+        }
+      });
+  }
   listeners.forEach((listener) => listener());
 }
 
 export function useGameSettings() {
+  useEffect(() => {
+    if (!isLocalMode) void loadRemoteGameSettings();
+  }, []);
   return useSyncExternalStore(subscribe, getGameSettings, () => DEFAULT_GAME_SETTINGS);
 }
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
   return () => listeners.delete(listener);
+}
+
+async function loadRemoteGameSettings() {
+  if (typeof window === "undefined" || remoteLoaded || remoteLoading) return;
+  remoteLoading = true;
+
+  const { data, error } = await supabase
+    .from("game_settings")
+    .select("settings")
+    .eq("id", "default")
+    .maybeSingle();
+
+  remoteLoading = false;
+  remoteLoaded = true;
+
+  if (error) {
+    console.error("[GameSettings] Failed to load settings:", error.message);
+    return;
+  }
+
+  cachedSettings = mergeSettings((data?.settings ?? {}) as Partial<GameSettings>);
+  cachedRaw = JSON.stringify(cachedSettings);
+  listeners.forEach((listener) => listener());
 }
 
 function mergeSettings(settings: Partial<GameSettings>): GameSettings {

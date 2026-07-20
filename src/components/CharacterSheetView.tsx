@@ -31,7 +31,7 @@ export function CharacterSheetView({ sheet }: { sheet: Sheet }) {
                 {cat === "fisicos" ? "Físicos" : cat === "sociais" ? "Sociais" : "Mentais"}
               </h4>
               {ATTRIBUTES[cat].map((n) => (
-                <RatingRow key={n} name={n} value={sheet.attributes[n] ?? 0} />
+                <RatingRow key={n} name={n} value={sheet.attributes[n] ?? 0} max={settings.skillMax} />
               ))}
             </div>
           ))}

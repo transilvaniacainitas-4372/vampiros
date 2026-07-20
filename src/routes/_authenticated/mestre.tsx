@@ -679,7 +679,7 @@ function SettingsPanel({ settings }: { settings: GameSettings }) {
         <ListConfig label="Habilidades mentais" value={settings.skills.mentais} defaultValue={DEFAULT_GAME_SETTINGS.skills.mentais} onChange={(v) => updateSkills("mentais", v)} />
         <ListConfig label="Estados" value={settings.states} defaultValue={DEFAULT_GAME_SETTINGS.states} onChange={(v) => update({ states: v })} />
         <label className="block">
-          <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Nível máximo das habilidades</span>
+          <span className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Nível máximo de atributos e habilidades</span>
           <Input
             type="number"
             min={1}
