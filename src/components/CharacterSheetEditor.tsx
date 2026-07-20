@@ -15,8 +15,7 @@ export function CharacterSheetEditor({
 }) {
   const settings = useGameSettings();
   const set = <K extends keyof Sheet>(k: K, v: Sheet[K]) => onChange({ ...value, [k]: v });
-  const setIdentity = (patch: Partial<Sheet["identity"]>) =>
-    set("identity", { ...value.identity, ...patch });
+  const setIdentity = (patch: Partial<Sheet["identity"]>) => set("identity", { ...value.identity, ...patch });
   const setState = (patch: Partial<Sheet["state"]>) => set("state", { ...value.state, ...patch });
   const setText = (patch: Partial<Sheet["text"]>) => set("text", { ...value.text, ...patch });
   const setAttr = (n: string, v: number) => set("attributes", { ...value.attributes, [n]: v });
@@ -28,55 +27,16 @@ export function CharacterSheetEditor({
       <Section title="Identidade">
         <Grid>
           <Text label="Nome" value={value.identity.name} onChange={(v) => setIdentity({ name: v })} />
-          <Text
-            label="Nome verdadeiro"
-            value={value.identity.trueName}
-            onChange={(v) => setIdentity({ trueName: v })}
-          />
-          <Select
-            label="Conceito"
-            value={value.identity.concept}
-            options={settings.concepts}
-            onChange={(v) => setIdentity({ concept: v })}
-          />
-          <Select
-            label="Crônica"
-            value={value.identity.chronicle}
-            options={settings.chronicles}
-            onChange={(v) => setIdentity({ chronicle: v })}
-          />
-          <Select
-            label="Clã"
-            value={value.identity.clan}
-            options={settings.clans}
-            onChange={(v) => setIdentity({ clan: v })}
-          />
-          <Select
-            label="Natureza"
-            value={value.identity.nature}
-            options={settings.natures}
-            onChange={(v) => setIdentity({ nature: v })}
-          />
-          <Select
-            label="Comportamento"
-            value={value.identity.demeanor}
-            options={settings.demeanors}
-            onChange={(v) => setIdentity({ demeanor: v })}
-          />
-          <Select
-            label="Predador"
-            value={value.identity.predator}
-            options={[...V5_PREDATOR_TYPES]}
-            onChange={(v) => setIdentity({ predator: v })}
-          />
-          <Number
-            label="Geração"
-            value={value.identity.generation}
-            min={4}
-            max={16}
-            onChange={(v) => setIdentity({ generation: v })}
-          />
-          <Text label="Senhor (Sire)" value={value.identity.sire} onChange={(v) => setIdentity({ sire: v })} />
+          <Text label="Jogador" value={value.identity.trueName} onChange={(v) => setIdentity({ trueName: v })} />
+          <Select label="Crônica" value={value.identity.chronicle} options={settings.chronicles} onChange={(v) => setIdentity({ chronicle: v })} />
+          <Select label="Natureza" value={value.identity.nature} options={settings.natures} onChange={(v) => setIdentity({ nature: v })} />
+          <Select label="Comportamento" value={value.identity.demeanor} options={settings.demeanors} onChange={(v) => setIdentity({ demeanor: v })} />
+          <Number label="Geração" value={value.identity.generation} min={4} max={16} onChange={(v) => setIdentity({ generation: v })} />
+          <Select label="Clã" value={value.identity.clan} options={settings.clans} onChange={(v) => setIdentity({ clan: v })} />
+          <Select label="Refúgio" value={value.text.haven} options={settings.havens} onChange={(v) => setText({ haven: v })} />
+          <Select label="Conceito" value={value.identity.concept} options={settings.concepts} onChange={(v) => setIdentity({ concept: v })} />
+          <Select label="Predador" value={value.identity.predator} options={[...V5_PREDATOR_TYPES]} onChange={(v) => setIdentity({ predator: v })} />
+          <Text label="Senhor" value={value.identity.sire} onChange={(v) => setIdentity({ sire: v })} />
         </Grid>
       </Section>
 
@@ -86,13 +46,7 @@ export function CharacterSheetEditor({
             <div key={cat}>
               <SubTitle>{cat === "fisicos" ? "Físicos" : cat === "sociais" ? "Sociais" : "Mentais"}</SubTitle>
               {ATTRIBUTES[cat].map((n) => (
-                <RatingRow
-                  key={n}
-                  name={n}
-                  value={value.attributes[n] ?? 0}
-                  onChange={(v) => setAttr(n, v)}
-                  max={settings.skillMax}
-                />
+                <RatingRow key={n} name={n} value={value.attributes[n] ?? 0} onChange={(v) => setAttr(n, v)} max={settings.skillMax} />
               ))}
             </div>
           ))}
@@ -101,9 +55,9 @@ export function CharacterSheetEditor({
 
       <Section title="Habilidades">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {(["fisicas", "sociais", "mentais"] as const).map((cat) => (
+          {(["talentos", "pericias", "conhecimentos"] as const).map((cat) => (
             <div key={cat}>
-              <SubTitle>{cat === "fisicas" ? "Físicas" : cat === "sociais" ? "Sociais" : "Mentais"}</SubTitle>
+              <SubTitle>{cat === "talentos" ? "Talentos" : cat === "pericias" ? "Perícias" : "Conhecimentos"}</SubTitle>
               {settings.skills[cat].map((n) => (
                 <SkillRow
                   key={n}
@@ -120,35 +74,45 @@ export function CharacterSheetEditor({
         </div>
       </Section>
 
+      <Section title="Vantagens">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <ItemsBlock title="Disciplinas" items={value.disciplines} onChange={(v) => set("disciplines", v)} />
+          <ItemsBlock title="Antecedentes" items={value.advantages} onChange={(v) => set("advantages", v)} />
+          <div className="space-y-6">
+            <div>
+              <SubTitle>Virtudes</SubTitle>
+              <RatingLine label="Consciência/Convicção" max={settings.skillMax} value={value.state.humanity} onChange={(v) => setState({ humanity: v })} />
+              <RatingLine label="Autocontrole/Instinto" max={settings.skillMax} value={value.state.stains} onChange={(v) => setState({ stains: v })} />
+              <RatingLine label="Coragem" max={settings.skillMax} value={value.state.hunger} onChange={(v) => setState({ hunger: v })} />
+            </div>
+            <ItemsBlock title="Qualidades/Defeitos" items={value.flaws} onChange={(v) => set("flaws", v)} />
+          </div>
+        </div>
+      </Section>
+
       <Section title="Estado">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <RatingLine label="Humanidade" max={10} value={value.state.humanity} onChange={(v) => setState({ humanity: v })} />
-          <RatingLine label="Máculas" max={10} value={value.state.stains} onChange={(v) => setState({ stains: v })} />
-          <RatingLine label="Fome" max={5} value={value.state.hunger} onChange={(v) => setState({ hunger: v })} />
+          <RatingLine label="Força de Vontade" max={value.state.willpowerMax} value={value.state.willpowerSuperficial} onChange={(v) => setState({ willpowerSuperficial: v })} />
+          <RatingLine label="Pontos de Sangue" max={10} value={value.state.stains} onChange={(v) => setState({ stains: v })} />
+          <RatingLine label="Caminho" max={10} value={value.state.humanity} onChange={(v) => setState({ humanity: v })} />
           <Number label="Vitalidade máx" value={value.state.healthMax} min={1} max={15} onChange={(v) => setState({ healthMax: v })} />
           <Number label="Vit. superficial" value={value.state.healthSuperficial} min={0} max={15} onChange={(v) => setState({ healthSuperficial: v })} />
           <Number label="Vit. agravada" value={value.state.healthAggravated} min={0} max={15} onChange={(v) => setState({ healthAggravated: v })} />
-          <Number label="F. Vontade máx" value={value.state.willpowerMax} min={1} max={15} onChange={(v) => setState({ willpowerMax: v })} />
-          <Number label="FV superficial" value={value.state.willpowerSuperficial} min={0} max={15} onChange={(v) => setState({ willpowerSuperficial: v })} />
+          <Number label="FV máx" value={value.state.willpowerMax} min={1} max={15} onChange={(v) => setState({ willpowerMax: v })} />
           <Number label="FV agravada" value={value.state.willpowerAggravated} min={0} max={15} onChange={(v) => setState({ willpowerAggravated: v })} />
-          <Text label="Ressonância" value={value.state.resonance} onChange={(v) => setState({ resonance: v })} />
+          <Text label="Fraqueza" value={value.state.resonance} onChange={(v) => setState({ resonance: v })} />
           <Number label="XP total" value={value.state.experienceTotal} min={0} max={9999} onChange={(v) => setState({ experienceTotal: v })} />
           <Number label="XP gasto" value={value.state.experienceSpent} min={0} max={9999} onChange={(v) => setState({ experienceSpent: v })} />
         </div>
       </Section>
 
-      <ItemsSection title="Disciplinas" items={value.disciplines} onChange={(v) => set("disciplines", v)} />
-      <ItemsSection title="Antecedentes & Vantagens" items={value.advantages} onChange={(v) => set("advantages", v)} />
-      <ItemsSection title="Defeitos" items={value.flaws} onChange={(v) => set("flaws", v)} />
-
       <StringListSection title="Convicções" items={value.convictions} onChange={(v) => set("convictions", v)} />
-      <StringListSection title="Laços (Touchstones)" items={value.touchstones} onChange={(v) => set("touchstones", v)} />
+      <StringListSection title="Laços" items={value.touchstones} onChange={(v) => set("touchstones", v)} />
 
       <Section title="História">
         <div className="space-y-4">
           <LongText label="Biografia" value={value.text.biography} onChange={(v) => setText({ biography: v })} />
           <LongText label="Aparência" value={value.text.appearance} onChange={(v) => setText({ appearance: v })} />
-          <Select label="Refúgio" value={value.text.haven} options={settings.havens} onChange={(v) => setText({ haven: v })} />
           <LongText label="Notas" value={value.text.notes} onChange={(v) => setText({ notes: v })} />
         </div>
       </Section>
@@ -224,17 +188,7 @@ function Select({ label, value, options, onChange }: { label: string; value: str
   );
 }
 
-function RatingRow({
-  name,
-  value,
-  onChange,
-  max,
-}: {
-  name: string;
-  value: number;
-  onChange: (v: number) => void;
-  max: number;
-}) {
+function RatingRow({ name, value, onChange, max }: { name: string; value: number; onChange: (v: number) => void; max: number }) {
   return (
     <div className="flex justify-between items-center py-1 border-b border-border/30">
       <span className="text-sm">{name}</span>
@@ -265,13 +219,7 @@ function SkillRow({
         <DotRating value={value} max={max} onChange={onValue} size="sm" />
       </div>
       {value > 0 && (
-        <Input
-          placeholder="Especialização"
-          value={spec}
-          onChange={(e) => onSpec(e.target.value)}
-          className="mt-1 h-7 text-xs"
-          maxLength={80}
-        />
+        <Input placeholder="Especialização" value={spec} onChange={(e) => onSpec(e.target.value)} className="mt-1 h-7 text-xs" maxLength={80} />
       )}
     </div>
   );
@@ -286,7 +234,7 @@ function RatingLine({ label, max, value, onChange }: { label: string; max?: numb
   );
 }
 
-function ItemsSection({
+function ItemsBlock({
   title,
   items,
   onChange,
@@ -297,7 +245,8 @@ function ItemsSection({
 }) {
   const [n, setN] = useState("");
   return (
-    <Section title={title}>
+    <div>
+      <SubTitle>{title}</SubTitle>
       <div className="space-y-2">
         {items.map((it, i) => (
           <div key={i} className="flex gap-2 items-start border border-border/40 p-2 rounded-sm">
@@ -355,7 +304,7 @@ function ItemsSection({
           </Button>
         </div>
       </div>
-    </Section>
+    </div>
   );
 }
 

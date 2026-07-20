@@ -16,14 +16,14 @@ export const V5_PREDATOR_TYPES = [
 
 export const ATTRIBUTES = {
   fisicos: ["Força", "Destreza", "Vigor"],
-  sociais: ["Carisma", "Manipulação", "Autocontrole"],
-  mentais: ["Inteligência", "Raciocínio", "Determinação"],
+  sociais: ["Carisma", "Manipulação", "Aparência"],
+  mentais: ["Percepção", "Inteligência", "Raciocínio"],
 } as const;
 
 export const SKILLS = {
-  fisicas: ["Armas Brancas", "Armas de Fogo", "Atletismo", "Briga", "Condução", "Furtividade", "Ofícios", "Sobrevivência", "Roubo"],
-  sociais: ["Etiqueta", "Intimidação", "Lábia", "Liderança", "Manha", "Performance", "Persuasão", "Empatia com Animais", "Intuição"],
-  mentais: ["Acadêmicos", "Ciência", "Finanças", "Investigação", "Medicina", "Ocultismo", "Percepção", "Política", "Tecnologia"],
+  talentos: ["Prontidão", "Esportes", "Briga", "Esquiva", "Empatia", "Expressão", "Intimidação", "Crime", "Liderança", "Lábia"],
+  pericias: ["Empatia c/ Animais", "Arqueirismo", "Artesanato", "Etiqueta", "Herborismo", "Armas Brancas", "Música", "Cavalgar", "Furtividade", "Sobrevivência"],
+  conhecimentos: ["Instrução", "Sabedoria Popular", "Investigação", "Direito", "Lingüística", "Medicina", "Ocultismo", "Política", "Ciência", "Senescalia"],
 } as const;
 
 const ratedItem = z.object({

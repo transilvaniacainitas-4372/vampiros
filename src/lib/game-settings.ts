@@ -14,9 +14,9 @@ export type GameSettings = {
   concepts: string[];
   skillMax: number;
   skills: {
-    fisicas: string[];
-    sociais: string[];
-    mentais: string[];
+    talentos: string[];
+    pericias: string[];
+    conhecimentos: string[];
   };
   states: string[];
 };
@@ -30,9 +30,9 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
   concepts: ["Ancilla político", "Neonato rebelde", "Predador social", "Investigador ocultista", "Executor da Camarilla"],
   skillMax: 8,
   skills: {
-    fisicas: [...SKILLS.fisicas],
-    sociais: [...SKILLS.sociais],
-    mentais: [...SKILLS.mentais],
+    talentos: [...SKILLS.talentos],
+    pericias: [...SKILLS.pericias],
+    conhecimentos: [...SKILLS.conhecimentos],
   },
   states: ["Humanidade", "Máculas", "Fome", "Vitalidade", "Força de Vontade", "Ressonância", "Experiência"],
 };
@@ -131,12 +131,20 @@ function mergeSettings(settings: Partial<GameSettings>): GameSettings {
     chronicles: cleanList(settings.chronicles, DEFAULT_GAME_SETTINGS.chronicles),
     concepts: cleanList(settings.concepts, DEFAULT_GAME_SETTINGS.concepts),
     skillMax: clampNumber(settings.skillMax, 1, 10, DEFAULT_GAME_SETTINGS.skillMax),
-    skills: {
-      fisicas: cleanList(settings.skills?.fisicas, DEFAULT_GAME_SETTINGS.skills.fisicas),
-      sociais: cleanList(settings.skills?.sociais, DEFAULT_GAME_SETTINGS.skills.sociais),
-      mentais: cleanList(settings.skills?.mentais, DEFAULT_GAME_SETTINGS.skills.mentais),
-    },
+    skills: normalizeSkills(settings.skills),
     states: cleanList(settings.states, DEFAULT_GAME_SETTINGS.states),
+  };
+}
+
+function normalizeSkills(skills: Partial<GameSettings["skills"]> & {
+  fisicas?: string[];
+  sociais?: string[];
+  mentais?: string[];
+} | undefined): GameSettings["skills"] {
+  return {
+    talentos: cleanList(skills?.talentos ?? skills?.fisicas, DEFAULT_GAME_SETTINGS.skills.talentos),
+    pericias: cleanList(skills?.pericias ?? skills?.sociais, DEFAULT_GAME_SETTINGS.skills.pericias),
+    conhecimentos: cleanList(skills?.conhecimentos ?? skills?.mentais, DEFAULT_GAME_SETTINGS.skills.conhecimentos),
   };
 }
 
