@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, Clock, Dice5 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { TableChat } from "@/components/TableChat";
 import { supabase } from "@/integrations/supabase/client";
 import { rollDice, useDiceTable, type DiceResult } from "@/lib/dice-table";
 
@@ -74,109 +75,113 @@ function DiceTablePage() {
           </div>
           {pendingForMe > 0 && (
             <div className="dice-callout-effect border border-blood/50 bg-blood/10 px-4 py-3 rounded-sm text-sm text-bone">
-              {pendingForMe} rolagem{pendingForMe === 1 ? "" : "s"} aguardando voce
+              {pendingForMe} rolagem{pendingForMe === 1 ? "" : "s"} aguardando você
             </div>
           )}
         </div>
 
-        <section className="velvet-table dice-panel-effect rounded-sm border border-blood/45 p-4 md:p-8">
-          <div className="velvet-table-inner gothic-panel rounded-sm border border-bone/10 min-h-[520px] p-4 md:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="dice-glow grid size-14 place-items-center border border-blood/50 bg-background/45 rounded-sm">
-                  <Dice5 className="size-7 text-blood" />
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+          <section className="velvet-table dice-panel-effect rounded-sm border border-blood/45 p-4 md:p-8">
+            <div className="velvet-table-inner gothic-panel rounded-sm border border-bone/10 min-h-[520px] p-4 md:p-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="dice-glow grid size-14 place-items-center border border-blood/50 bg-background/45 rounded-sm">
+                    <Dice5 className="size-7 text-blood" />
+                  </div>
+                  <div>
+                    <h2 className="font-display uppercase tracking-widest text-bone">Centro da mesa</h2>
+                    <p className="text-sm text-bone/70">Todos acompanham as chamadas, rolagens e resultados em cima da mesa.</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-display uppercase tracking-widest text-bone">Centro da mesa</h2>
-                  <p className="text-sm text-bone/70">Todos acompanham as chamadas, rolagens e resultados em cima da mesa.</p>
+                <div className="flex flex-wrap gap-3">
+                  <NumberControl label="Dados" value={diceCount} min={1} max={50} onChange={setDiceCount} />
+                  <NumberControl label="Lados" value={sides} min={2} max={100} onChange={setSides} />
                 </div>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <NumberControl label="Dados" value={diceCount} min={1} max={50} onChange={setDiceCount} />
-                <NumberControl label="Lados" value={sides} min={2} max={100} onChange={setSides} />
-              </div>
-            </div>
 
-            {activeRequests.length === 0 ? (
-              <div className="grid min-h-[340px] place-items-center border border-dashed border-bone/20 bg-background/20 rounded-sm text-center p-8">
-                <div>
-                  <Dice5 className="size-12 mx-auto text-bone/45 mb-4" />
-                  <p className="font-display uppercase tracking-widest text-bone">Nenhuma mesa habilitada</p>
-                  <p className="text-sm text-bone/65 mt-2">Quando o mestre abrir uma chamada, ela aparece aqui para todos.</p>
+              {activeRequests.length === 0 ? (
+                <div className="grid min-h-[340px] place-items-center border border-dashed border-bone/20 bg-background/20 rounded-sm text-center p-8">
+                  <div>
+                    <Dice5 className="size-12 mx-auto text-bone/45 mb-4" />
+                    <p className="font-display uppercase tracking-widest text-bone">Nenhuma mesa habilitada</p>
+                    <p className="text-sm text-bone/65 mt-2">Quando o mestre abrir uma chamada, ela aparece aqui para todos.</p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="grid gap-5">
-                {activeRequests.map((request) => {
-                  const completed = request.targets.filter((target) =>
-                    request.results.some((result) => result.targetCharacterId === target.characterId),
-                  ).length;
-                  return (
-                    <article key={request.id} className="table-call-card gothic-panel rounded-sm border border-bone/15 bg-background/35 p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                        <div>
-                          <div className="text-[10px] uppercase tracking-widest text-blood">Chamada ativa</div>
-                          <h3 className="font-display uppercase tracking-widest text-xl text-bone mt-1">{request.title}</h3>
-                          {request.note && <p className="text-sm text-bone/70 mt-2">{request.note}</p>}
+              ) : (
+                <div className="grid gap-5">
+                  {activeRequests.map((request) => {
+                    const completed = request.targets.filter((target) =>
+                      request.results.some((result) => result.targetCharacterId === target.characterId),
+                    ).length;
+                    return (
+                      <article key={request.id} className="table-call-card gothic-panel rounded-sm border border-bone/15 bg-background/35 p-4">
+                        <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+                          <div>
+                            <div className="text-[10px] uppercase tracking-widest text-blood">Chamada ativa</div>
+                            <h3 className="font-display uppercase tracking-widest text-xl text-bone mt-1">{request.title}</h3>
+                            {request.note && <p className="text-sm text-bone/70 mt-2">{request.note}</p>}
+                          </div>
+                          <div className="border border-bone/15 bg-background/35 px-3 py-2 rounded-sm text-sm text-bone">
+                            {completed}/{request.targets.length} rolaram
+                          </div>
                         </div>
-                        <div className="border border-bone/15 bg-background/35 px-3 py-2 rounded-sm text-sm text-bone">
-                          {completed}/{request.targets.length} rolaram
-                        </div>
-                      </div>
 
-                      <div className="grid md:grid-cols-2 gap-3">
-                        {request.targets.map((target) => {
-                          const result = request.results.find((item) => item.targetCharacterId === target.characterId);
-                          const canRoll = myCharacterIds.has(target.characterId) && !result;
-                          return (
-                            <div key={target.characterId} className={`rounded-sm border p-3 ${result ? "border-emerald-400/35 bg-emerald-500/10" : "border-bone/15 bg-background/30"}`}>
-                              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                                <div className="font-display uppercase tracking-widest text-sm text-bone">{target.characterName}</div>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          {request.targets.map((target) => {
+                            const result = request.results.find((item) => item.targetCharacterId === target.characterId);
+                            const canRoll = myCharacterIds.has(target.characterId) && !result;
+                            return (
+                              <div key={target.characterId} className={`rounded-sm border p-3 ${result ? "border-emerald-400/35 bg-emerald-500/10" : "border-bone/15 bg-background/30"}`}>
+                                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                                  <div className="font-display uppercase tracking-widest text-sm text-bone">{target.characterName}</div>
+                                  {result ? (
+                                    <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-emerald-300">
+                                      <Check className="size-4" />
+                                      Rolado
+                                    </span>
+                                  ) : (
+                                    <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-amber-200">
+                                      <Clock className="dice-pending-effect size-4" />
+                                      Aguardando
+                                    </span>
+                                  )}
+                                </div>
+
                                 {result ? (
-                                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-emerald-300">
-                                    <Check className="size-4" />
-                                    Rolado
-                                  </span>
+                                  <ResultView result={result} />
+                                ) : canRoll ? (
+                                  <Button className="dice-button-effect font-display uppercase tracking-widest w-full" onClick={() => onRoll(request.id, target.characterId)}>
+                                    <Dice5 className="size-4 mr-2" />
+                                    Rolar {diceCount}d{sides}
+                                  </Button>
                                 ) : (
-                                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-amber-200">
-                                    <Clock className="dice-pending-effect size-4" />
-                                    Aguardando
-                                  </span>
+                                  <p className="text-sm text-bone/55">Aguardando este jogador rolar.</p>
                                 )}
                               </div>
-
-                              {result ? (
-                                <ResultView result={result} />
-                              ) : canRoll ? (
-                                <Button className="dice-button-effect font-display uppercase tracking-widest w-full" onClick={() => onRoll(request.id, target.characterId)}>
-                                  <Dice5 className="size-4 mr-2" />
-                                  Rolar {diceCount}d{sides}
-                                </Button>
-                              ) : (
-                                <p className="text-sm text-bone/55">Aguardando este jogador rolar.</p>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {request.results.filter((result) => !result.targetCharacterId).length > 0 && (
-                        <div className="mt-4 border-t border-bone/15 pt-4 space-y-2">
-                          {request.results.filter((result) => !result.targetCharacterId).map((result) => (
-                            <div key={result.id} className="rounded-sm border border-blood/35 bg-blood/10 p-3">
-                              <div className="font-display uppercase tracking-widest text-sm text-bone mb-2">Mestre</div>
-                              <ResultView result={result} />
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
-                      )}
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </section>
+
+                        {request.results.filter((result) => !result.targetCharacterId).length > 0 && (
+                          <div className="mt-4 border-t border-bone/15 pt-4 space-y-2">
+                            {request.results.filter((result) => !result.targetCharacterId).map((result) => (
+                              <div key={result.id} className="rounded-sm border border-blood/35 bg-blood/10 p-3">
+                                <div className="font-display uppercase tracking-widest text-sm text-bone mb-2">Mestre</div>
+                                <ResultView result={result} />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <TableChat />
+        </div>
       </main>
     </div>
   );
