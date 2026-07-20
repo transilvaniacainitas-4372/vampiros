@@ -29,6 +29,7 @@ export type DiceRequest = {
   sides: number;
   active: boolean;
   createdAt: string;
+  closedAt?: string | null;
   targets: DiceTarget[];
   results: DiceResult[];
 };
@@ -58,7 +59,7 @@ function readTable(): DiceTable {
   }
 
   try {
-    cachedTable = JSON.parse(raw) as DiceTable;
+    cachedTable = normalizeTable(JSON.parse(raw) as DiceTable);
   } catch {
     cachedTable = fallbackTable;
   }
@@ -68,11 +69,27 @@ function readTable(): DiceTable {
 
 function writeTable(table: DiceTable) {
   if (typeof window === "undefined") return;
-  const raw = JSON.stringify(table);
+  const normalized = normalizeTable(table);
+  const raw = JSON.stringify(normalized);
   cachedRaw = raw;
-  cachedTable = table;
+  cachedTable = normalized;
   window.localStorage.setItem(DICE_TABLE_KEY, raw);
   window.dispatchEvent(new Event("vampiros:dice-table"));
+}
+
+function normalizeTable(table: DiceTable): DiceTable {
+  let activeSeen = false;
+  const now = new Date().toISOString();
+  return {
+    requests: table.requests.map((request) => {
+      if (!request.active) return request;
+      if (!activeSeen) {
+        activeSeen = true;
+        return request;
+      }
+      return { ...request, active: false, closedAt: request.closedAt ?? now };
+    }),
+  };
 }
 
 function subscribe(callback: () => void) {
@@ -99,6 +116,7 @@ export function createDiceRequest(input: {
   note: string;
   targetCharacterIds: string[];
 }) {
+  const now = new Date().toISOString();
   const characters = getLocalCharacters();
   const targets = input.targetCharacterIds
     .map((characterId) => characters.find((character) => character.id === characterId))
@@ -116,20 +134,29 @@ export function createDiceRequest(input: {
     diceCount: 0,
     sides: 0,
     active: true,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    closedAt: null,
     targets,
     results: [],
   };
 
-  writeTable({ requests: [request, ...readTable().requests] });
+  writeTable({
+    requests: [
+      request,
+      ...readTable().requests.map((existing) =>
+        existing.active ? { ...existing, active: false, closedAt: existing.closedAt ?? now } : existing,
+      ),
+    ],
+  });
   return request;
 }
 
 export function closeDiceRequest(requestId: string) {
   const table = readTable();
+  const now = new Date().toISOString();
   writeTable({
     requests: table.requests.map((request) =>
-      request.id === requestId ? { ...request, active: false } : request,
+      request.id === requestId ? { ...request, active: false, closedAt: request.closedAt ?? now } : request,
     ),
   });
 }
@@ -167,10 +194,7 @@ export function rollDice(requestId: string, targetCharacterId: string | null, fo
     item.id === requestId
       ? {
           ...item,
-          results: [
-            result,
-            ...item.results.filter((existing) => existing.targetCharacterId !== targetCharacterId),
-          ],
+          results: [result, ...item.results],
         }
       : item,
   );

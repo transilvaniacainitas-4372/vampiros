@@ -441,6 +441,7 @@ function DiceTablePanel({
 
   const playerChars = chars.filter((character) => character.owner_id);
   const activeRequests = diceTable.requests.filter((request) => request.active);
+  const historyRequests = diceTable.requests.filter((request) => !request.active);
   const calledCount = targetIds.length;
 
   const toggleTarget = (id: string) => {
@@ -454,8 +455,9 @@ function DiceTablePanel({
       toast.error("Escolha pelo menos um personagem para chamar.");
       return;
     }
+    const hadActiveTable = activeRequests.length > 0;
     createDiceRequest({ title, note, targetCharacterIds: targetIds });
-    toast.success("Mesa de dados habilitada.");
+    toast.success(hadActiveTable ? "Mesa anterior fechada e nova mesa habilitada." : "Mesa de dados habilitada.");
     setTargetIds([]);
   };
 
@@ -521,8 +523,11 @@ function DiceTablePanel({
 
           <Button onClick={onCreate} className="dice-button-effect font-display uppercase tracking-widest w-full mt-4">
             <Play className="size-4 mr-2" />
-            Habilitar mesa
+            {activeRequests.length > 0 ? "Fechar atual e abrir nova" : "Habilitar mesa"}
           </Button>
+          {activeRequests.length > 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">Ao abrir outra mesa, a mesa ativa será fechada e enviada ao histórico.</p>
+          )}
 
           <div className="mt-6 border border-border/60 bg-background/25 p-4 rounded-sm">
             <div className="font-display uppercase tracking-widest text-sm text-bone mb-3">Rolagem do mestre</div>
@@ -630,6 +635,26 @@ function DiceTablePanel({
               );
             })}
           </div>
+
+          <div className="mt-8">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Histórico</span>
+                <div className="text-sm text-bone">{historyRequests.length} mesa{historyRequests.length === 1 ? "" : "s"} encerrada{historyRequests.length === 1 ? "" : "s"}</div>
+              </div>
+            </div>
+            {historyRequests.length === 0 ? (
+              <div className="border border-dashed border-border/70 p-5 rounded-sm text-center">
+                <p className="text-sm text-muted-foreground">Nenhuma mesa encerrada ainda.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {historyRequests.map((request) => (
+                  <DiceHistoryCard key={request.id} request={request} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
@@ -707,6 +732,92 @@ function RollStatusCard({
       )}
     </div>
   );
+}
+
+function DiceHistoryCard({ request }: { request: ReturnType<typeof useDiceTable>["requests"][number] }) {
+  const playerResults = request.results.filter((result) => result.targetCharacterId);
+  const masterResults = request.results.filter((result) => !result.targetCharacterId);
+  const targetById = new Map(request.targets.map((target) => [target.characterId, target.characterName]));
+
+  return (
+    <article className="border border-border/60 bg-background/25 rounded-sm overflow-hidden">
+      <div className="border-b border-border/60 bg-card/25 p-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="font-display uppercase tracking-widest text-sm text-bone">{request.title}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Aberta em {formatDateTime(request.createdAt)}
+              {request.closedAt ? ` · Fechada em ${formatDateTime(request.closedAt)}` : ""}
+            </div>
+          </div>
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{request.results.length} rolagem{request.results.length === 1 ? "" : "s"}</span>
+        </div>
+        {request.note && <p className="text-xs text-muted-foreground mt-2">{request.note}</p>}
+      </div>
+      <div className="p-3 space-y-2">
+        {request.results.length === 0 && <p className="text-sm text-muted-foreground">Mesa encerrada sem rolagens.</p>}
+        {playerResults.map((result) => (
+          <HistoryResultRow
+            key={result.id}
+            label={targetById.get(result.targetCharacterId ?? "") ?? "Personagem"}
+            result={result}
+          />
+        ))}
+        {masterResults.map((result) => (
+          <HistoryResultRow key={result.id} label="Mestre" result={result} />
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function HistoryResultRow({
+  label,
+  result,
+}: {
+  label: string;
+  result: {
+    rollerName: string;
+    diceCount: number;
+    sides: number;
+    rolls: number[];
+    total: number;
+    rolledAt: string;
+  };
+}) {
+  return (
+    <div className="border border-border/40 bg-card/15 p-3 rounded-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="text-sm text-bone">{label}</div>
+          <div className="text-xs text-muted-foreground">
+            {result.rollerName} · {formatDateTime(result.rolledAt)}
+          </div>
+        </div>
+        <span className="font-display uppercase tracking-widest text-blood text-sm">
+          {result.diceCount}d{result.sides} Total {result.total}
+        </span>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1">
+        {result.rolls.map((roll, index) => (
+          <span key={`${result.rolledAt}-${index}`} className="grid size-6 place-items-center border border-border bg-background rounded-sm text-[10px] text-bone">
+            {roll}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
 function ResultDiceStrip({ rolls, total, diceCount, sides }: { rolls: number[]; total: number; diceCount?: number; sides?: number }) {
