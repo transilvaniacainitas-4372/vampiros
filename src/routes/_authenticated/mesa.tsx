@@ -87,18 +87,14 @@ function DiceTablePage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-blood">Mesa compartilhada</p>
-            <h1 className="gothic-hero-title font-display uppercase tracking-widest text-3xl text-bone">Mesa de Dados</h1>
-          </div>
-          {pendingForMe > 0 && (
+      <main className="max-w-6xl mx-auto px-6 py-6">
+        {pendingForMe > 0 && (
+          <div className="mb-4 flex justify-end">
             <div className="dice-callout-effect border border-blood/50 bg-blood/10 px-4 py-3 rounded-sm text-sm text-bone">
               {pendingForMe} rolagem{pendingForMe === 1 ? "" : "s"} aguardando você
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
           <section className="velvet-table dice-panel-effect rounded-sm border border-blood/45 p-4 md:p-8">
