@@ -1,6 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getLocalSession } from "./local-data";
+import { getLocalSession, getLocalUsers } from "./local-data";
 import { isLocalMode } from "./local-mode";
 
 const PRESENCE_KEY = "vampiros.local.presence";
@@ -11,6 +11,10 @@ export type OnlineUser = {
   user_id: string;
   display_name: string;
   last_seen: string;
+};
+
+export type KnownUser = OnlineUser & {
+  online: boolean;
 };
 
 const fallbackPresence: OnlineUser[] = [];
@@ -50,16 +54,13 @@ function refreshLocalPresence() {
   const user = getLocalSession();
   if (!user) return;
 
-  const cutoff = Date.now() - ONLINE_WINDOW_MS;
   const nextUser: OnlineUser = {
     user_id: user.id,
     display_name: user.display_name || user.email,
     last_seen: new Date().toISOString(),
   };
 
-  const otherUsers = readLocalPresence().filter(
-    (item) => item.user_id !== user.id && new Date(item.last_seen).getTime() >= cutoff,
-  );
+  const otherUsers = readLocalPresence().filter((item) => item.user_id !== user.id);
   writeLocalPresence([nextUser, ...otherUsers]);
 }
 
@@ -76,7 +77,15 @@ function subscribeLocal(callback: () => void) {
   };
 }
 
-function useLocalOnlineUsers() {
+function toKnownUsers(users: OnlineUser[]) {
+  const cutoff = Date.now() - ONLINE_WINDOW_MS;
+  return users.map((user) => ({
+    ...user,
+    online: new Date(user.last_seen).getTime() >= cutoff,
+  }));
+}
+
+function useLocalKnownUsers() {
   useEffect(() => {
     refreshLocalPresence();
     const interval = window.setInterval(refreshLocalPresence, 15_000);
@@ -84,12 +93,19 @@ function useLocalOnlineUsers() {
   }, []);
 
   const users = useSyncExternalStore(subscribeLocal, readLocalPresence, () => fallbackPresence);
-  const cutoff = Date.now() - ONLINE_WINDOW_MS;
-  return users.filter((user) => new Date(user.last_seen).getTime() >= cutoff);
+  const knownUsers = getLocalUsers().map((user) => {
+    const presence = users.find((item) => item.user_id === user.id);
+    return {
+      user_id: user.id,
+      display_name: user.display_name || user.email,
+      last_seen: presence?.last_seen ?? "1970-01-01T00:00:00.000Z",
+    };
+  });
+  return toKnownUsers(knownUsers);
 }
 
-function useRemoteOnlineUsers() {
-  const [users, setUsers] = useState<OnlineUser[]>([]);
+function useRemoteKnownUsers() {
+  const [users, setUsers] = useState<KnownUser[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,14 +127,27 @@ function useRemoteOnlineUsers() {
     };
 
     const load = async () => {
-      const since = new Date(Date.now() - ONLINE_WINDOW_MS).toISOString();
-      const { data, error } = await supabase
+      const [{ data: profiles, error: profilesError }, { data: presence, error: presenceError }] = await Promise.all([
+        supabase.from("profiles").select("id, display_name"),
+        supabase
         .from("user_presence")
         .select("user_id, display_name, last_seen")
-        .gte("last_seen", since)
-        .order("last_seen", { ascending: false });
+          .order("last_seen", { ascending: false }),
+      ]);
 
-      if (!cancelled && !error) setUsers((data ?? []) as OnlineUser[]);
+      if (profilesError || presenceError) return;
+
+      const presenceByUser = new Map((presence ?? []).map((item) => [item.user_id, item]));
+      const knownUsers = (profiles ?? []).map((profile) => {
+        const userPresence = presenceByUser.get(profile.id);
+        return {
+          user_id: profile.id,
+          display_name: profile.display_name || userPresence?.display_name || "Jogador",
+          last_seen: userPresence?.last_seen ?? "1970-01-01T00:00:00.000Z",
+        };
+      });
+
+      if (!cancelled) setUsers(toKnownUsers(knownUsers));
     };
 
     const tick = async () => {
@@ -137,6 +166,21 @@ function useRemoteOnlineUsers() {
   return users;
 }
 
-export function useOnlineUsers() {
-  return isLocalMode ? useLocalOnlineUsers() : useRemoteOnlineUsers();
+export function useKnownUsers() {
+  return isLocalMode ? useLocalKnownUsers() : useRemoteKnownUsers();
+}
+
+export function useCurrentUserId() {
+  const [userId, setUserId] = useState<string | null>(() => (isLocalMode ? getLocalSession()?.id ?? null : null));
+
+  useEffect(() => {
+    if (isLocalMode) {
+      setUserId(getLocalSession()?.id ?? null);
+      return;
+    }
+
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+  }, []);
+
+  return userId;
 }
