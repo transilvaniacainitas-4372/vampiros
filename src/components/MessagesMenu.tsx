@@ -29,7 +29,7 @@ export function MessagesMenu() {
         type="button"
         variant="outline"
         size="sm"
-        className="relative"
+        className="gothic-menu-button relative"
         onClick={() => setOpen((value) => !value)}
         aria-label="Abrir mensagens"
       >

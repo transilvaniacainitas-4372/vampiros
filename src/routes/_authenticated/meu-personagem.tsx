@@ -108,12 +108,12 @@ function MyCharacter() {
     <div className="gothic-vault-bg min-h-screen">
       <header className="gothic-nav border-b border-border/50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex flex-wrap gap-4 justify-between items-center">
-          <Link to="/" className="font-display uppercase tracking-[0.3em] text-blood text-sm">Transylvania Chronicles</Link>
+          <Link to="/" className="gothic-brand font-display uppercase tracking-[0.3em] text-blood text-sm">Transylvania Chronicles</Link>
           <nav className="flex flex-wrap items-center gap-3">
-            <Link to="/meu-personagem" className="font-display uppercase tracking-widest text-xs text-blood">Minha ficha</Link>
-            <Link to="/mesa" className="font-display uppercase tracking-widest text-xs hover:text-blood">Mesa</Link>
+            <Link to="/meu-personagem" className="gothic-menu-link gothic-menu-link-active font-display uppercase tracking-widest text-xs">Minha ficha</Link>
+            <Link to="/mesa" className="gothic-menu-link font-display uppercase tracking-widest text-xs">Mesa</Link>
             <MessagesMenu />
-            <Button variant="outline" size="sm" onClick={async ()=>{ await supabase.auth.signOut(); navigate({ to: "/" }); }}>Sair</Button>
+            <Button variant="outline" size="sm" className="gothic-menu-button" onClick={async ()=>{ await supabase.auth.signOut(); navigate({ to: "/" }); }}>Sair</Button>
           </nav>
         </div>
       </header>

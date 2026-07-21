@@ -70,24 +70,24 @@ function Home() {
     <div className="gothic-vault-bg min-h-screen">
       <header className="gothic-nav border-b border-border/50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link to="/" className="font-display uppercase tracking-[0.3em] text-blood text-lg">
+          <Link to="/" className="gothic-brand font-display uppercase tracking-[0.3em] text-blood text-lg">
             Transylvania Chronicles
           </Link>
           <nav className="flex gap-3 items-center text-sm">
             {session ? (
               <>
                 {hasAssignedCharacter && (
-                  <Link to="/meu-personagem" className="font-display uppercase tracking-widest text-xs hover:text-blood">
+                  <Link to="/meu-personagem" className="gothic-menu-link font-display uppercase tracking-widest text-xs">
                     Minha ficha
                   </Link>
                 )}
                 {(hasAssignedCharacter || isStoryteller) && (
-                  <Link to="/mesa" className="font-display uppercase tracking-widest text-xs hover:text-blood">
+                  <Link to="/mesa" className="gothic-menu-link font-display uppercase tracking-widest text-xs">
                     Mesa
                   </Link>
                 )}
                 {isStoryteller && (
-                  <Link to="/mestre" className="font-display uppercase tracking-widest text-xs hover:text-blood">
+                  <Link to="/mestre" className="gothic-menu-link font-display uppercase tracking-widest text-xs">
                     Mestre
                   </Link>
                 )}
@@ -95,6 +95,7 @@ function Home() {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="gothic-menu-button"
                   onClick={async () => {
                     await supabase.auth.signOut();
                     navigate({ to: "/" });
@@ -105,7 +106,7 @@ function Home() {
               </>
             ) : (
               <Link to="/auth">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="gothic-menu-button">
                   Entrar
                 </Button>
               </Link>

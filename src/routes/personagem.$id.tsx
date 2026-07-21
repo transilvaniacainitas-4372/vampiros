@@ -45,10 +45,10 @@ function CharacterPage() {
   if (!row || !sheet) throw notFound();
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-border/50">
+    <div className="gothic-vault-bg min-h-screen">
+      <header className="gothic-nav border-b border-border/50">
         <div className="max-w-5xl mx-auto px-6 py-4">
-          <Link to="/" className="text-xs uppercase tracking-widest text-muted-foreground hover:text-blood">← Voltar ao domínio</Link>
+          <Link to="/" className="gothic-menu-link font-display text-xs uppercase tracking-widest">← Voltar ao domínio</Link>
         </div>
       </header>
       <main className="max-w-5xl mx-auto px-6 py-12">
