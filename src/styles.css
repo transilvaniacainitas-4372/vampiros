@@ -346,6 +346,45 @@
       0 2px 0 oklch(0.04 0.01 20);
   }
 
+  .cursed-die-trigger {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: default;
+    font: inherit;
+    letter-spacing: inherit;
+    text-shadow:
+      0 0 22px color-mix(in oklch, var(--color-blood) 34%, transparent),
+      0 2px 0 oklch(0.04 0.01 20);
+    transition: filter 160ms ease, text-shadow 160ms ease, transform 160ms ease;
+  }
+
+  .cursed-die-trigger:hover {
+    filter: saturate(1.2);
+    text-shadow:
+      0 0 28px color-mix(in oklch, var(--color-blood) 55%, transparent),
+      0 2px 0 oklch(0.04 0.01 20);
+  }
+
+  .cursed-die-trigger:active {
+    transform: translateY(1px);
+  }
+
+  .cursed-die-easter {
+    animation: cursed-die-rise 260ms ease-out both, dice-alert-pulse 2.4s ease-in-out infinite;
+  }
+
+  .cursed-die-easter::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    border-top: 1px solid color-mix(in oklch, var(--color-bone) 18%, transparent);
+    border-left: 1px solid color-mix(in oklch, var(--color-bone) 10%, transparent);
+    opacity: 0.75;
+  }
+
   .gothic-panel {
     position: relative;
     border-color: color-mix(in oklch, var(--color-bone) 16%, var(--color-border));
@@ -536,6 +575,17 @@
     100% {
       opacity: 1;
       transform: translateY(0) rotate(0deg) scale(1);
+    }
+  }
+
+  @keyframes cursed-die-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
   }
 }

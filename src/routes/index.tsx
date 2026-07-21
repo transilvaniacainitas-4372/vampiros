@@ -34,6 +34,8 @@ function Home() {
   const [hasAssignedCharacter, setHasAssignedCharacter] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [flippedId, setFlippedId] = useState<string | null>(null);
+  const [, setCursedClicks] = useState(0);
+  const [showCursedDie, setShowCursedDie] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -65,6 +67,23 @@ function Home() {
       navigate({ to: "/mesa" });
     }
   }, [authChecked, session, hasAssignedCharacter, isStoryteller, diceTable.requests, navigate]);
+
+  useEffect(() => {
+    if (!showCursedDie) return;
+    const timeout = window.setTimeout(() => setShowCursedDie(false), 4200);
+    return () => window.clearTimeout(timeout);
+  }, [showCursedDie]);
+
+  const onCursedTriggerClick = () => {
+    setCursedClicks((current) => {
+      const next = current + 1;
+      if (next >= 5) {
+        setShowCursedDie(true);
+        return 0;
+      }
+      return next;
+    });
+  };
 
   return (
     <div className="gothic-vault-bg min-h-screen">
@@ -118,7 +137,15 @@ function Home() {
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="text-center mb-12">
           <h1 className="gothic-hero-title font-display text-3xl md:text-5xl uppercase tracking-[0.12em] text-bone">
-            <span className="text-blood">Cainitas</span> da Transilvânia
+            <button
+              type="button"
+              className="cursed-die-trigger text-blood"
+              onClick={onCursedTriggerClick}
+              aria-label="Cainitas"
+            >
+              Cainitas
+            </button>{" "}
+            da Transilvânia
           </h1>
           <hr className="gothic-divider mt-6 max-w-md mx-auto" />
           <p className="mt-6 text-muted-foreground max-w-2xl mx-auto italic">
@@ -223,6 +250,16 @@ function Home() {
       <footer className="border-t border-border/50 mt-24 py-8 text-center text-xs text-muted-foreground">
         <p>Uma crônica de Vampiro: A Máscara</p>
       </footer>
+
+      {showCursedDie && (
+        <div className="cursed-die-easter fixed inset-x-4 bottom-6 z-50 mx-auto max-w-sm rounded-sm border border-blood/55 bg-background/95 p-4 text-center shadow-2xl shadow-black/70">
+          <div className="mx-auto mb-3 grid size-12 place-items-center rounded-sm border border-blood/60 bg-blood/10 text-blood dice-face-effect">
+            <span className="font-display text-2xl leading-none">1</span>
+          </div>
+          <p className="font-display text-xs uppercase tracking-[0.22em] text-blood">Dado amaldiçoado</p>
+          <p className="mt-2 text-sm text-bone">Dado amaldiçoado rolado: 1. O mestre sorri. Isso nunca é bom.</p>
+        </div>
+      )}
     </div>
   );
 }
