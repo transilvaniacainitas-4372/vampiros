@@ -221,7 +221,7 @@ function Home() {
       </main>
 
       <footer className="border-t border-border/50 mt-24 py-8 text-center text-xs text-muted-foreground">
-        <p>Uma crônica de Vampiro: A Máscara — 5ª Edição</p>
+        <p>Uma crônica de Vampiro: A Máscara</p>
       </footer>
     </div>
   );
