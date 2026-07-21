@@ -385,6 +385,37 @@
     opacity: 0.75;
   }
 
+  .not-found-scene {
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(ellipse at 50% 18%, color-mix(in oklch, var(--color-blood) 16%, transparent), transparent 48%),
+      radial-gradient(ellipse at 20% 80%, color-mix(in oklch, var(--color-bone) 6%, transparent), transparent 34%),
+      linear-gradient(to bottom, color-mix(in oklch, var(--color-background) 88%, black), var(--color-background));
+  }
+
+  .not-found-card {
+    animation: not-found-enter 420ms ease-out both;
+  }
+
+  .not-found-code {
+    text-shadow:
+      0 0 34px color-mix(in oklch, var(--color-blood) 46%, transparent),
+      0 8px 0 oklch(0.04 0.01 20);
+  }
+
+  .not-found-mist {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(115deg, transparent 0%, color-mix(in oklch, var(--color-bone) 6%, transparent) 34%, transparent 62%),
+      radial-gradient(ellipse at 72% 28%, color-mix(in oklch, var(--color-blood) 12%, transparent), transparent 42%),
+      radial-gradient(ellipse at 30% 78%, color-mix(in oklch, var(--color-bone) 5%, transparent), transparent 36%);
+    opacity: 0.55;
+    animation: not-found-mist 8s ease-in-out infinite;
+  }
+
   .gothic-panel {
     position: relative;
     border-color: color-mix(in oklch, var(--color-bone) 16%, var(--color-border));
@@ -586,6 +617,28 @@
     to {
       opacity: 1;
       transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes not-found-enter {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes not-found-mist {
+    0%, 100% {
+      transform: translateX(-2%);
+      opacity: 0.42;
+    }
+    50% {
+      transform: translateX(2%);
+      opacity: 0.62;
     }
   }
 }

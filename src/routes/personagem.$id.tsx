@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { GothicNotFound } from "@/components/GothicNotFound";
 import { supabase } from "@/integrations/supabase/client";
 import { CharacterSheetView } from "@/components/CharacterSheetView";
 import { sheetSchema, type Sheet } from "@/lib/character-schema";
@@ -11,14 +12,7 @@ type Row = {
 
 export const Route = createFileRoute("/personagem/$id")({
   component: CharacterPage,
-  notFoundComponent: () => (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="font-display text-blood text-3xl">Personagem não encontrado</h1>
-        <Link to="/" className="text-sm text-muted-foreground hover:text-blood mt-4 inline-block">← Voltar</Link>
-      </div>
-    </div>
-  ),
+  notFoundComponent: () => <GothicNotFound message="Este personagem não foi encontrado na crônica." />,
 });
 
 function CharacterPage() {
