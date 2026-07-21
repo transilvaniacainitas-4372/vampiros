@@ -31,7 +31,7 @@ export function OnlineUsers() {
   const chatWindow =
     selectedUser && typeof document !== "undefined"
       ? createPortal(
-          <div className="fixed bottom-0 right-4 z-[100] w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-t-sm border border-bone/20 bg-background shadow-2xl shadow-black/60">
+          <div className="private-chat-dock overflow-hidden rounded-t-sm border border-bone/20 bg-background shadow-2xl shadow-black/60">
             <DirectMessageThread
               user={selectedUser}
               currentUserId={currentUserId}

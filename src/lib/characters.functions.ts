@@ -138,18 +138,29 @@ const listPlayersRemote = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers();
     if (authError) throw new Error(authError.message);
-    const usersById = new Map((authUsers.users ?? []).map((user) => [user.id, user]));
+    const profilesById = new Map(profiles.map((profile) => [profile.id, profile]));
+    const userIds = new Set([
+      ...profiles.map((profile) => profile.id),
+      ...(authUsers.users ?? []).map((user) => user.id),
+    ]);
 
     return Promise.all(
-      profiles.map(async (profile) => {
+      [...userIds].map(async (userId) => {
+        const profile = profilesById.get(userId);
+        const authUser = (authUsers.users ?? []).find((user) => user.id === userId);
         const { data: isStoryteller } = await context.supabase.rpc("has_role", {
-          _user_id: profile.id,
+          _user_id: userId,
           _role: "storyteller",
         });
 
         return {
-          ...profile,
-          email: usersById.get(profile.id)?.email ?? "",
+          id: userId,
+          display_name:
+            profile?.display_name ??
+            (authUser?.user_metadata?.display_name as string | undefined) ??
+            authUser?.email?.split("@")[0] ??
+            "Jogador",
+          email: authUser?.email ?? "",
           role: isStoryteller ? "storyteller" : "player",
           status: "active",
         };

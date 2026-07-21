@@ -339,6 +339,16 @@
     box-shadow: 0 0 14px color-mix(in oklch, var(--color-blood) 40%, transparent);
   }
 
+  .private-chat-dock {
+    position: fixed !important;
+    right: 1rem !important;
+    bottom: 0 !important;
+    top: auto !important;
+    left: auto !important;
+    z-index: 9999 !important;
+    width: min(22rem, calc(100vw - 2rem));
+  }
+
   @keyframes dice-panel-enter {
     from {
       opacity: 0;
