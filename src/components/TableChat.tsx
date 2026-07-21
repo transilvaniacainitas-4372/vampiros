@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { MessageCircle, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { OnlineUsers } from "@/components/OnlineUsers";
 import { sendChatMessage, useChatMessages } from "@/lib/table-chat";
 
 export function TableChat() {
@@ -41,6 +42,8 @@ export function TableChat() {
           </div>
         </div>
       </div>
+
+      <OnlineUsers />
 
       <div className="h-[360px] overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
