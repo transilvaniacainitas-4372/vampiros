@@ -13,9 +13,14 @@ export function GothicNotFound({
         <div className="not-found-mist" aria-hidden="true" />
         <div className="relative z-10 max-w-2xl">
           <p className="font-display text-[10px] uppercase tracking-[0.35em] text-blood">Transylvania Chronicles</p>
-          <h1 className="not-found-code font-display mt-4 text-8xl uppercase leading-none text-blood md:text-[10rem]">
-            404
-          </h1>
+          <div className="not-found-code-wrap mt-4">
+            <h1 className="not-found-code font-display text-8xl uppercase leading-none text-blood md:text-[10rem]">
+              404
+            </h1>
+            <span className="blood-drip blood-drip-a" aria-hidden="true" />
+            <span className="blood-drip blood-drip-b" aria-hidden="true" />
+            <span className="blood-drip blood-drip-c" aria-hidden="true" />
+          </div>
           <hr className="gothic-divider mx-auto mt-5 max-w-sm" />
           <h2 className="gothic-hero-title mt-8 font-display text-2xl uppercase tracking-[0.18em] text-bone md:text-4xl">
             Página perdida na noite

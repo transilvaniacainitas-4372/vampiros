@@ -398,10 +398,84 @@
     animation: not-found-enter 420ms ease-out both;
   }
 
+  .not-found-code-wrap {
+    position: relative;
+    display: inline-block;
+    isolation: isolate;
+  }
+
   .not-found-code {
+    position: relative;
+    z-index: 1;
     text-shadow:
       0 0 34px color-mix(in oklch, var(--color-blood) 46%, transparent),
       0 8px 0 oklch(0.04 0.01 20);
+  }
+
+  .not-found-code::after {
+    content: "";
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 0.04em;
+    height: 0.05em;
+    background:
+      linear-gradient(to right, transparent, color-mix(in oklch, var(--color-blood) 72%, black), transparent);
+    filter: blur(0.5px);
+    opacity: 0.72;
+  }
+
+  .blood-drip {
+    position: absolute;
+    top: 72%;
+    width: 0.11em;
+    min-width: 8px;
+    height: 0.5em;
+    min-height: 34px;
+    border-radius: 999px 999px 70% 70%;
+    background:
+      linear-gradient(to bottom, color-mix(in oklch, var(--color-blood) 88%, black), color-mix(in oklch, var(--color-blood) 62%, black));
+    box-shadow:
+      0 0 12px color-mix(in oklch, var(--color-blood) 34%, transparent),
+      inset 0 1px 0 color-mix(in oklch, var(--color-bone) 12%, transparent);
+    opacity: 0;
+    transform-origin: top;
+    animation: blood-drip-fall 3.4s ease-in infinite;
+  }
+
+  .blood-drip::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -0.16em;
+    width: 0.24em;
+    min-width: 13px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: color-mix(in oklch, var(--color-blood) 78%, black);
+    box-shadow: 0 0 14px color-mix(in oklch, var(--color-blood) 32%, transparent);
+    transform: translateX(-50%) scale(0.72);
+  }
+
+  .blood-drip-a {
+    left: 20%;
+    animation-delay: 0.1s;
+  }
+
+  .blood-drip-b {
+    left: 49%;
+    height: 0.36em;
+    min-height: 24px;
+    animation-delay: 1.15s;
+    animation-duration: 3.9s;
+  }
+
+  .blood-drip-c {
+    right: 18%;
+    height: 0.44em;
+    min-height: 30px;
+    animation-delay: 2.05s;
+    animation-duration: 4.2s;
   }
 
   .not-found-mist {
@@ -639,6 +713,25 @@
     50% {
       transform: translateX(2%);
       opacity: 0.62;
+    }
+  }
+
+  @keyframes blood-drip-fall {
+    0%, 12% {
+      opacity: 0;
+      transform: translateY(-0.16em) scaleY(0.25);
+    }
+    26% {
+      opacity: 0.9;
+      transform: translateY(0) scaleY(1);
+    }
+    72% {
+      opacity: 0.9;
+      transform: translateY(0.24em) scaleY(1.18);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(0.86em) scaleY(0.74);
     }
   }
 }
