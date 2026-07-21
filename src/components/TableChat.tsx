@@ -30,7 +30,7 @@ export function TableChat() {
   };
 
   return (
-    <section className="gothic-panel flex h-full min-h-[640px] flex-col overflow-hidden rounded-sm border border-bone/15 bg-background/35">
+    <section className="gothic-panel flex h-[min(640px,calc(100vh-17rem))] min-h-[420px] flex-col overflow-hidden rounded-sm border border-bone/15 bg-background/35">
       <div className="shrink-0 border-b border-bone/15 p-4">
         <div className="flex items-center gap-3">
           <div className="grid size-10 place-items-center border border-blood/45 bg-blood/10 rounded-sm text-blood">
@@ -45,7 +45,7 @@ export function TableChat() {
 
       <OnlineUsers />
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="gothic-scrollbar min-h-0 flex-1 overflow-y-scroll p-4 space-y-3">
         {messages.length === 0 && (
           <div className="grid h-full place-items-center text-center">
             <p className="text-sm text-bone/55">Nenhuma mensagem enviada ainda.</p>

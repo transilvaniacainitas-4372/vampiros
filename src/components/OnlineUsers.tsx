@@ -60,7 +60,7 @@ export function OnlineUsers() {
         {contacts.length === 0 ? (
           <p className="text-xs text-bone/55">Nenhum usuário encontrado ainda.</p>
         ) : (
-          <div className="grid max-h-[6.5rem] gap-2 overflow-y-auto pr-1">
+          <div className="gothic-scrollbar grid h-[7rem] gap-2 overflow-y-scroll pr-1">
             {contacts.map((user) => {
               const unread = unreadCountFor(messages, currentUserId, user.user_id);
               return (
@@ -172,7 +172,7 @@ function DirectMessageThread({
 
       {!minimized && (
         <>
-          <div className="max-h-72 overflow-y-auto p-3 space-y-2">
+          <div className="gothic-scrollbar max-h-72 overflow-y-scroll p-3 space-y-2">
             {thread.length === 0 && <p className="text-xs text-bone/55">Nenhuma mensagem nessa conversa.</p>}
             {thread.map((message) => {
               const mine = message.sender_id === currentUserId;
