@@ -60,7 +60,7 @@ export function OnlineUsers() {
         {contacts.length === 0 ? (
           <p className="text-xs text-bone/55">Nenhum usuário encontrado ainda.</p>
         ) : (
-          <div className="grid gap-2">
+          <div className="grid max-h-[6.5rem] gap-2 overflow-y-auto pr-1">
             {contacts.map((user) => {
               const unread = unreadCountFor(messages, currentUserId, user.user_id);
               return (

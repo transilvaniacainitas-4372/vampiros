@@ -30,8 +30,8 @@ export function TableChat() {
   };
 
   return (
-    <section className="gothic-panel rounded-sm border border-bone/15 bg-background/35 overflow-hidden">
-      <div className="border-b border-bone/15 p-4">
+    <section className="gothic-panel flex h-[640px] max-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-sm border border-bone/15 bg-background/35">
+      <div className="shrink-0 border-b border-bone/15 p-4">
         <div className="flex items-center gap-3">
           <div className="grid size-10 place-items-center border border-blood/45 bg-blood/10 rounded-sm text-blood">
             <MessageCircle className="size-5" />
@@ -45,7 +45,7 @@ export function TableChat() {
 
       <OnlineUsers />
 
-      <div className="h-[360px] overflow-y-auto p-4 space-y-3">
+      <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
           <div className="grid h-full place-items-center text-center">
             <p className="text-sm text-bone/55">Nenhuma mensagem enviada ainda.</p>
@@ -65,7 +65,7 @@ export function TableChat() {
         <div ref={endRef} />
       </div>
 
-      <form onSubmit={onSubmit} className="border-t border-bone/15 p-3">
+      <form onSubmit={onSubmit} className="shrink-0 border-t border-bone/15 p-3">
         <div className="grid grid-cols-[1fr_auto] gap-2">
           <input
             value={draft}
