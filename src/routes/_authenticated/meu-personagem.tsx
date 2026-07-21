@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CharacterSheetEditor } from "@/components/CharacterSheetEditor";
+import { MessagesMenu } from "@/components/MessagesMenu";
 import { sheetSchema, emptySheet, type Sheet } from "@/lib/character-schema";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -111,6 +112,7 @@ function MyCharacter() {
           <nav className="flex flex-wrap items-center gap-3">
             <Link to="/meu-personagem" className="font-display uppercase tracking-widest text-xs text-blood">Minha ficha</Link>
             <Link to="/mesa" className="font-display uppercase tracking-widest text-xs hover:text-blood">Mesa</Link>
+            <MessagesMenu />
             <Button variant="outline" size="sm" onClick={async ()=>{ await supabase.auth.signOut(); navigate({ to: "/" }); }}>Sair</Button>
           </nav>
         </div>

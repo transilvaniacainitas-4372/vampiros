@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, Clock, Dice5, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { MessagesMenu } from "@/components/MessagesMenu";
 import { TableChat } from "@/components/TableChat";
 import { supabase } from "@/integrations/supabase/client";
 import { closeDiceRequest, rollDice, useDiceTable, type DiceResult } from "@/lib/dice-table";
@@ -80,6 +81,7 @@ function DiceTablePage() {
           <nav className="flex flex-wrap items-center gap-3">
             <Link to="/meu-personagem" className="font-display uppercase tracking-widest text-xs hover:text-blood">Minha ficha</Link>
             <Link to="/mesa" className="font-display uppercase tracking-widest text-xs text-blood">Mesa</Link>
+            <MessagesMenu />
             <Button variant="outline" size="sm" onClick={async ()=>{ await supabase.auth.signOut(); navigate({ to: "/" }); }}>Sair</Button>
           </nav>
         </div>

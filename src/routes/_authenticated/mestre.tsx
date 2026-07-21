@@ -2,6 +2,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { MessagesMenu } from "@/components/MessagesMenu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -142,6 +143,7 @@ function MasterPanel() {
           <nav className="flex flex-wrap items-center gap-3">
             <Link to="/mesa" className="font-display uppercase tracking-widest text-xs hover:text-blood">Mesa</Link>
             <Link to="/mestre" className="font-display uppercase tracking-widest text-xs text-blood">Mestre</Link>
+            <MessagesMenu />
             <Button variant="outline" size="sm" onClick={async ()=>{ await supabase.auth.signOut(); navigate({ to: "/" }); }}>Sair</Button>
           </nav>
         </div>

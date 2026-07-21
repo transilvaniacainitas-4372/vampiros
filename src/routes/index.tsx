@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { MessagesMenu } from "@/components/MessagesMenu";
 import { useDiceTable } from "@/lib/dice-table";
 
 type Character = {
@@ -90,6 +91,7 @@ function Home() {
                     Mestre
                   </Link>
                 )}
+                <MessagesMenu />
                 <Button
                   variant="outline"
                   size="sm"

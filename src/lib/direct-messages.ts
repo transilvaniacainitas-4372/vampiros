@@ -119,6 +119,11 @@ export function unreadCountFor(messages: DirectMessage[], myUserId: string | nul
   ).length;
 }
 
+export function totalUnreadCount(messages: DirectMessage[], myUserId: string | null) {
+  if (!myUserId) return 0;
+  return messages.filter((message) => message.recipient_id === myUserId && !message.read_at).length;
+}
+
 export function conversationWith(messages: DirectMessage[], myUserId: string | null, otherUserId: string) {
   if (!myUserId) return fallbackMessages;
   return messages.filter(
