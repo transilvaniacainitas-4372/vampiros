@@ -15,6 +15,8 @@ export function MessagesMenu() {
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (target?.closest(".private-chat-dock")) return;
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     };
     window.addEventListener("pointerdown", onPointerDown);
