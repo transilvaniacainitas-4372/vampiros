@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Mail, Minus, Send, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,22 @@ export function OnlineUsers() {
     setMinimized(false);
     void markConversationRead(user.user_id);
   };
+
+  const chatWindow =
+    selectedUser && typeof document !== "undefined"
+      ? createPortal(
+          <div className="fixed bottom-0 right-4 z-[100] w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-t-sm border border-bone/20 bg-background shadow-2xl shadow-black/60">
+            <DirectMessageThread
+              user={selectedUser}
+              currentUserId={currentUserId}
+              minimized={minimized}
+              onMinimize={() => setMinimized((value) => !value)}
+              onClose={() => setSelectedUser(null)}
+            />
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
     <section className="border-b border-bone/15">
@@ -75,17 +92,7 @@ export function OnlineUsers() {
         )}
       </div>
 
-      {selectedUser && (
-        <div className="fixed bottom-0 right-4 z-[70] w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-t-sm border border-bone/20 bg-background shadow-2xl shadow-black/60">
-          <DirectMessageThread
-            user={selectedUser}
-            currentUserId={currentUserId}
-            minimized={minimized}
-            onMinimize={() => setMinimized((value) => !value)}
-            onClose={() => setSelectedUser(null)}
-          />
-        </div>
-      )}
+      {chatWindow}
     </section>
   );
 }

@@ -138,16 +138,26 @@ function useRemoteKnownUsers() {
       if (profilesError || presenceError) return;
 
       const presenceByUser = new Map((presence ?? []).map((item) => [item.user_id, item]));
-      const knownUsers = (profiles ?? []).map((profile) => {
+      const knownUsersById = new Map((profiles ?? []).map((profile) => {
         const userPresence = presenceByUser.get(profile.id);
-        return {
+        return [profile.id, {
           user_id: profile.id,
           display_name: profile.display_name || userPresence?.display_name || "Jogador",
           last_seen: userPresence?.last_seen ?? "1970-01-01T00:00:00.000Z",
-        };
-      });
+        }];
+      }));
 
-      if (!cancelled) setUsers(toKnownUsers(knownUsers));
+      for (const item of presence ?? []) {
+        if (!knownUsersById.has(item.user_id)) {
+          knownUsersById.set(item.user_id, {
+            user_id: item.user_id,
+            display_name: item.display_name || "Jogador",
+            last_seen: item.last_seen,
+          });
+        }
+      }
+
+      if (!cancelled) setUsers(toKnownUsers([...knownUsersById.values()]));
     };
 
     const tick = async () => {
