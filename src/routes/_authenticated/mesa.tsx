@@ -87,7 +87,7 @@ function DiceTablePage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-6">
+      <main className="max-w-7xl mx-auto px-6 py-6">
         {pendingForMe > 0 && (
           <div className="mb-4 flex justify-end">
             <div className="dice-callout-effect border border-blood/50 bg-blood/10 px-4 py-3 rounded-sm text-sm text-bone">
@@ -96,7 +96,7 @@ function DiceTablePage() {
           </div>
         )}
 
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_430px]">
           <section className="velvet-table dice-panel-effect rounded-sm border border-blood/45 p-4 md:p-8">
             <div className="velvet-table-inner gothic-panel min-h-[520px] rounded-sm border border-bone/10 p-4 md:p-6">
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
