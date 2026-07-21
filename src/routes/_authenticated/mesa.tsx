@@ -100,9 +100,9 @@ function DiceTablePage() {
           )}
         </div>
 
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
           <section className="velvet-table dice-panel-effect rounded-sm border border-blood/45 p-4 md:p-8">
-            <div className="velvet-table-inner gothic-panel rounded-sm border border-bone/10 min-h-[640px] p-4 md:p-6">
+            <div className="velvet-table-inner gothic-panel h-full min-h-[640px] rounded-sm border border-bone/10 p-4 md:p-6">
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
                   <div className="dice-glow grid size-14 place-items-center border border-blood/50 bg-background/45 rounded-sm">

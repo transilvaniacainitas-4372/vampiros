@@ -30,7 +30,7 @@ export function TableChat() {
   };
 
   return (
-    <section className="gothic-panel flex h-[640px] max-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-sm border border-bone/15 bg-background/35">
+    <section className="gothic-panel flex h-full min-h-[640px] flex-col overflow-hidden rounded-sm border border-bone/15 bg-background/35">
       <div className="shrink-0 border-b border-bone/15 p-4">
         <div className="flex items-center gap-3">
           <div className="grid size-10 place-items-center border border-blood/45 bg-blood/10 rounded-sm text-blood">
