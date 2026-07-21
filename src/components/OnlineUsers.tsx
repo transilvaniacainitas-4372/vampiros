@@ -71,12 +71,13 @@ export function OnlineUsers() {
                   className="flex min-w-0 items-center gap-2 rounded-sm border border-bone/10 bg-background/35 px-2 py-2 text-left hover:border-blood/45"
                   title={`${user.online ? "Online" : "Offline"} - visto ${formatSeenTime(user.last_seen)}`}
                 >
-                  <span
-                    className={`size-2 shrink-0 rounded-full ${
-                      user.online ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.75)]" : "bg-muted-foreground/55"
-                    }`}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-xs text-bone/85">{user.display_name}</span>
+                  <UserAvatar user={user} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs text-bone/90">{user.display_name}</span>
+                    {user.character_name && user.player_name && user.player_name !== user.character_name && (
+                      <span className="block truncate text-[10px] text-muted-foreground">{user.player_name}</span>
+                    )}
+                  </span>
                   <span className="relative grid size-7 shrink-0 place-items-center rounded-sm border border-bone/10 bg-background/45 text-blood">
                     <Mail className="size-4" />
                     {unread > 0 && (
@@ -150,14 +151,13 @@ function DirectMessageThread({
         className="flex w-full items-center justify-between gap-3 border-b border-bone/10 bg-card/70 p-3 text-left"
       >
         <div className="flex min-w-0 items-center gap-2">
-          <span
-            className={`size-2 shrink-0 rounded-full ${
-              user.online ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.75)]" : "bg-muted-foreground/55"
-            }`}
-          />
+          <UserAvatar user={user} />
           <div className="min-w-0">
-          <div className="font-display uppercase tracking-widest text-xs text-blood">Particular</div>
-          <div className="truncate text-sm text-bone">{user.display_name}</div>
+            <div className="font-display uppercase tracking-widest text-xs text-blood">Particular</div>
+            <div className="truncate text-sm text-bone">{user.display_name}</div>
+            {user.character_name && user.player_name && user.player_name !== user.character_name && (
+              <div className="truncate text-[10px] text-muted-foreground">{user.player_name}</div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-1" onClick={(event) => event.stopPropagation()}>
@@ -211,6 +211,33 @@ function DirectMessageThread({
       )}
     </div>
   );
+}
+
+function UserAvatar({ user }: { user: KnownUser }) {
+  return (
+    <span className="relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-full border border-bone/15 bg-card/60">
+      {user.portrait_url ? (
+        <img src={user.portrait_url} alt="" className="h-full w-full object-cover grayscale" />
+      ) : (
+        <span className="font-display text-xs uppercase text-bone/70">{initials(user.display_name)}</span>
+      )}
+      <span
+        className={`absolute bottom-0 right-0 size-2.5 rounded-full border border-background ${
+          user.online ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.75)]" : "bg-muted-foreground"
+        }`}
+      />
+    </span>
+  );
+}
+
+function initials(value: string) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "?";
 }
 
 function formatSeenTime(value: string) {

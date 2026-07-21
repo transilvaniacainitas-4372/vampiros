@@ -1,6 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getLocalSession, getLocalUsers } from "./local-data";
+import { getLocalCharacters, getLocalSession, getLocalUsers } from "./local-data";
 import { isLocalMode } from "./local-mode";
 
 const PRESENCE_KEY = "vampiros.local.presence";
@@ -11,6 +11,9 @@ export type OnlineUser = {
   user_id: string;
   display_name: string;
   last_seen: string;
+  player_name?: string;
+  character_name?: string;
+  portrait_url?: string | null;
 };
 
 export type KnownUser = OnlineUser & {
@@ -95,9 +98,14 @@ function useLocalKnownUsers() {
   const users = useSyncExternalStore(subscribeLocal, readLocalPresence, () => fallbackPresence);
   const knownUsers = getLocalUsers().map((user) => {
     const presence = users.find((item) => item.user_id === user.id);
+    const character = getLocalCharacters().find((item) => item.owner_id === user.id);
+    const playerName = user.display_name || user.email;
     return {
       user_id: user.id,
-      display_name: user.display_name || user.email,
+      display_name: character?.name || playerName,
+      player_name: playerName,
+      character_name: character?.name,
+      portrait_url: character?.portrait_url ?? null,
       last_seen: presence?.last_seen ?? "1970-01-01T00:00:00.000Z",
     };
   });
@@ -127,31 +135,55 @@ function useRemoteKnownUsers() {
     };
 
     const load = async () => {
-      const [{ data: profiles, error: profilesError }, { data: presence, error: presenceError }] = await Promise.all([
+      const [
+        { data: profiles, error: profilesError },
+        { data: presence, error: presenceError },
+        { data: characters, error: charactersError },
+      ] = await Promise.all([
         supabase.from("profiles").select("id, display_name"),
         supabase
         .from("user_presence")
         .select("user_id, display_name, last_seen")
           .order("last_seen", { ascending: false }),
+        supabase
+          .from("characters")
+          .select("owner_id, name, portrait_url")
+          .not("owner_id", "is", null)
+          .order("updated_at", { ascending: false }),
       ]);
 
-      if (profilesError || presenceError) return;
+      if (profilesError || presenceError || charactersError) return;
 
       const presenceByUser = new Map((presence ?? []).map((item) => [item.user_id, item]));
+      const characterByOwner = new Map(
+        (characters ?? [])
+          .filter((character) => character.owner_id)
+          .map((character) => [character.owner_id!, character]),
+      );
       const knownUsersById = new Map((profiles ?? []).map((profile) => {
         const userPresence = presenceByUser.get(profile.id);
+        const character = characterByOwner.get(profile.id);
+        const playerName = profile.display_name || userPresence?.display_name || "Jogador";
         return [profile.id, {
           user_id: profile.id,
-          display_name: profile.display_name || userPresence?.display_name || "Jogador",
+          display_name: character?.name || playerName,
+          player_name: playerName,
+          character_name: character?.name,
+          portrait_url: character?.portrait_url ?? null,
           last_seen: userPresence?.last_seen ?? "1970-01-01T00:00:00.000Z",
         }];
       }));
 
       for (const item of presence ?? []) {
         if (!knownUsersById.has(item.user_id)) {
+          const character = characterByOwner.get(item.user_id);
+          const playerName = item.display_name || "Jogador";
           knownUsersById.set(item.user_id, {
             user_id: item.user_id,
-            display_name: item.display_name || "Jogador",
+            display_name: character?.name || playerName,
+            player_name: playerName,
+            character_name: character?.name,
+            portrait_url: character?.portrait_url ?? null,
             last_seen: item.last_seen,
           });
         }
